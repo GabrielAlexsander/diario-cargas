@@ -94,7 +94,7 @@ def gerar_pdf(bloco):
 
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=A4,  # 🔥 AGORA EM PÉ
+        pagesize=A4,
         rightMargin=5,
         leftMargin=5,
         topMargin=5,
@@ -113,13 +113,14 @@ def gerar_pdf(bloco):
 
     primeira = bloco.iloc[0]
 
-    # 🔹 Soma Cubagem
+    # 🔹 Soma Cubagem baseada na coluna J (CUBAGEM FINAL)
     cubagem_total = 0
     for _, row in bloco.iterrows():
         try:
-            cubagem_total += float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            cubagem_total += cubagem_individual
         except:
-            pass
+            cubagem_individual = 0
 
     # 🔹 Soma Peso Total
     peso_total = 0
@@ -140,7 +141,7 @@ def gerar_pdf(bloco):
         ["Destino", primeira["DESTINO"]],
         ["Data", primeira["DATA"]],
         ["GW", primeira["COLETA GW"]],
-        ["Cubagem Total", f"{cubagem_total:.2f}"],
+        ["Cubagem Total (Soma das NFs)", f"{cubagem_total:.2f}"],
         ["Peso Total (Kg)", f"{peso_total:.2f}"],
         ["Cálculo KIT", f"{resultado_kit:.2f}"],
         ["Cálculo MIX", f"{resultado_mix:.2f}"],
@@ -155,23 +156,31 @@ def gerar_pdf(bloco):
         ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
-    tabela = [["CLIENTE", "NF", "VOL", "PESO", "REDESP.", "CONF."]]
+    # 🔥 NOVA COLUNA CUBAGEM INDIVIDUAL
+    tabela = [["CLIENTE", "NF", "VOL", "PESO", "CUB.", "REDESP.", "CONF."]]
 
     for _, row in bloco.iterrows():
+
         redespacho = str(row["REDESPACHO"]).strip().upper()
         destino_nota = redespacho if redespacho else "ENTREGA DIRETA"
+
+        try:
+            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            cubagem_formatada = f"{cubagem_individual:.2f}"
+        except:
+            cubagem_formatada = "0.00"
 
         tabela.append([
             Paragraph(str(row["CLIENTE"]), style_small),
             Paragraph(str(row["NOTAS FISCAIS"]), style_small),
             Paragraph(str(row["VOLUMES"]), style_small),
             Paragraph(str(row["PESO Kg"]), style_small),
+            Paragraph(cubagem_formatada, style_small),
             Paragraph(destino_nota, style_small),
             ""
         ])
 
-    # 🔥 COLUNAS REDUZIDAS PARA CABER EM PÉ
-    table = Table(tabela, colWidths=[150, 60, 40, 50, 70, 35])
+    table = Table(tabela, colWidths=[120, 55, 35, 45, 45, 60, 30])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
         ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
