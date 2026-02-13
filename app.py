@@ -16,7 +16,6 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# ✅ AGORA LÊ DIRETO DO SECRETS (FORMATO TOML CORRETO)
 info = st.secrets["gcp_service_account"]
 
 creds = ServiceAccountCredentials.from_json_keyfile_dict(info, scope)
@@ -109,10 +108,19 @@ def gerar_pdf(bloco):
 
     primeira = bloco.iloc[0]
 
+    # 🔹 Soma Cubagem
     cubagem_total = 0
     for _, row in bloco.iterrows():
         try:
             cubagem_total += float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+        except:
+            pass
+
+    # 🔹 Soma Peso Total (COLUNA G)
+    peso_total = 0
+    for _, row in bloco.iterrows():
+        try:
+            peso_total += float(str(row["PESO Kg"]).replace(",", "."))
         except:
             pass
 
@@ -128,6 +136,7 @@ def gerar_pdf(bloco):
         ["Data", primeira["DATA"]],
         ["GW", primeira["COLETA GW"]],
         ["Cubagem Total", f"{cubagem_total:.2f}"],
+        ["Peso Total (Kg)", f"{peso_total:.2f}"],
         ["Cálculo KIT", f"{resultado_kit:.2f}"],
         ["Cálculo MIX", f"{resultado_mix:.2f}"],
     ]
