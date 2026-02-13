@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph, KeepTogether
+from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -54,7 +54,7 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     margin-bottom: 10px;
     font-size: 13px;
-    color: #000000 !important;  /* 🔥 FORÇA TEXTO PRETO */
+    color: #000000 !important;
 }
 .card b {
     color: #000000 !important;
@@ -86,7 +86,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
 # 🖨️ PDF
 def gerar_pdf(bloco):
 
@@ -95,10 +94,10 @@ def gerar_pdf(bloco):
     doc = SimpleDocTemplate(
         buffer,
         pagesize=landscape(A4),
-        rightMargin=10,
-        leftMargin=10,
-        topMargin=10,
-        bottomMargin=10
+        rightMargin=5,
+        leftMargin=5,
+        topMargin=5,
+        bottomMargin=5
     )
 
     elements = []
@@ -107,8 +106,8 @@ def gerar_pdf(bloco):
     style_small = ParagraphStyle(
         'small',
         parent=styles['Normal'],
-        fontSize=7,
-        leading=8
+        fontSize=6,
+        leading=6
     )
 
     primeira = bloco.iloc[0]
@@ -121,7 +120,7 @@ def gerar_pdf(bloco):
         except:
             pass
 
-    # 🔹 Soma Peso Total (COLUNA G)
+    # 🔹 Soma Peso Total
     peso_total = 0
     for _, row in bloco.iterrows():
         try:
@@ -146,11 +145,13 @@ def gerar_pdf(bloco):
         ["Cálculo MIX", f"{resultado_mix:.2f}"],
     ]
 
-    header_table = Table(header, colWidths=[160, 340])
+    header_table = Table(header, colWidths=[140, 300])
     header_table.setStyle(TableStyle([
-        ('GRID', (0,0), (-1,-1), 0.4, colors.grey),
+        ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
         ('BACKGROUND', (0,0), (0,-1), colors.whitesmoke),
-        ('FONTSIZE', (0,0), (-1,-1), 8)
+        ('FONTSIZE', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
     tabela = [["CLIENTE", "NF", "VOL", "PESO", "REDESPACHO", "CONF."]]
@@ -161,23 +162,26 @@ def gerar_pdf(bloco):
 
         tabela.append([
             Paragraph(str(row["CLIENTE"]), style_small),
-            str(row["NOTAS FISCAIS"]),
-            str(row["VOLUMES"]),
-            str(row["PESO Kg"]),
-            destino_nota,
+            Paragraph(str(row["NOTAS FISCAIS"]), style_small),
+            Paragraph(str(row["VOLUMES"]), style_small),
+            Paragraph(str(row["PESO Kg"]), style_small),
+            Paragraph(destino_nota, style_small),
             ""
         ])
 
-    table = Table(tabela, colWidths=[230, 90, 60, 70, 110, 50])
+    table = Table(tabela, colWidths=[210, 70, 45, 55, 90, 40])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-        ('GRID', (0,0), (-1,-1), 0.4, colors.grey),
-        ('FONTSIZE', (0,0), (-1,-1), 7),
+        ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
+        ('FONTSIZE', (0,0), (-1,-1), 6),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('ALIGN', (5,1), (5,-1), 'CENTER')
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
-    elements.append(KeepTogether([header_table, Spacer(1,6), table]))
+    elements.append(header_table)
+    elements.append(Spacer(1,4))
+    elements.append(table)
 
     doc.build(elements)
     buffer.seek(0)
