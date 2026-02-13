@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import gspread
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph, KeepTogether
 from reportlab.lib import colors
@@ -10,16 +11,14 @@ import io
 
 st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
-# 🔐 GOOGLE SHEETS
+# 🔐 GOOGLE SHEETS VIA STREAMLIT SECRETS
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "credenciais.json", scope
-)
-
+info = json.loads(st.secrets["gcp_service_account"]["json"])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(info, scope)
 client = gspread.authorize(creds)
 
 SHEET_ID = "1-rcw838y84sDORYXdNtvBCFg_8oKeBFJ8IgOcnj3qcg"
@@ -46,8 +45,7 @@ for _, row in df.iterrows():
 if bloco_atual:
     blocos.append(pd.DataFrame(bloco_atual))
 
-
-# 🎨 ESTILO CARD (AGORA COM STATUS)
+# 🎨 ESTILO CARD
 st.markdown("""
 <style>
 .card {
@@ -84,8 +82,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
-# 🖨️ PDF (NÃO ALTERADO)
+# 🖨️ PDF
 def gerar_pdf(bloco):
 
     buffer = io.BytesIO()
@@ -144,7 +141,6 @@ def gerar_pdf(bloco):
     tabela = [["CLIENTE", "NF", "VOL", "PESO", "REDESPACHO", "CONF."]]
 
     for _, row in bloco.iterrows():
-
         redespacho = row["REDESPACHO"].strip().upper()
         destino_nota = redespacho if redespacho else "ENTREGA DIRETA"
 
@@ -172,8 +168,7 @@ def gerar_pdf(bloco):
     buffer.seek(0)
     return buffer
 
-
-# 🧩 CARDS COM STATUS DINÂMICO
+# 🧩 CARDS
 cols = st.columns(3)
 
 for i, bloco in enumerate(blocos):
@@ -190,7 +185,6 @@ for i, bloco in enumerate(blocos):
         data = primeira["DATA"]
         gw = primeira["COLETA GW"]
 
-        # 🔥 NOVA LÓGICA STATUS
         status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
 
         if status == "SIM":
