@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import gspread
-import json
 from oauth2client.service_account import ServiceAccountCredentials
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph, KeepTogether
 from reportlab.lib import colors
@@ -17,7 +16,9 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-info = json.loads(st.secrets["gcp_service_account"]["json"])
+# ✅ AGORA LÊ DIRETO DO SECRETS (FORMATO TOML CORRETO)
+info = st.secrets["gcp_service_account"]
+
 creds = ServiceAccountCredentials.from_json_keyfile_dict(info, scope)
 client = gspread.authorize(creds)
 
@@ -141,7 +142,7 @@ def gerar_pdf(bloco):
     tabela = [["CLIENTE", "NF", "VOL", "PESO", "REDESPACHO", "CONF."]]
 
     for _, row in bloco.iterrows():
-        redespacho = row["REDESPACHO"].strip().upper()
+        redespacho = str(row["REDESPACHO"]).strip().upper()
         destino_nota = redespacho if redespacho else "ENTREGA DIRETA"
 
         tabela.append([
