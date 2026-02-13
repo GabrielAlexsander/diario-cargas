@@ -54,6 +54,10 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     margin-bottom: 10px;
     font-size: 13px;
+    color: #000000 !important;  /* 🔥 FORÇA TEXTO PRETO */
+}
+.card b {
+    color: #000000 !important;
 }
 .finalizado {
     background: #e9f9ee;
@@ -73,14 +77,15 @@ st.markdown("""
 }
 .badge-ok {
     background: #d4edda;
-    color: #155724;
+    color: #155724 !important;
 }
 .badge-pendente {
     background: #f8d7da;
-    color: #721c24;
+    color: #721c24 !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 # 🖨️ PDF
 def gerar_pdf(bloco):
