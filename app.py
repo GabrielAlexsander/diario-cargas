@@ -4,7 +4,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import io
 
@@ -86,14 +86,15 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 🖨️ PDF
+
+# 🖨️ PDF EM PÉ
 def gerar_pdf(bloco):
 
     buffer = io.BytesIO()
 
     doc = SimpleDocTemplate(
         buffer,
-        pagesize=landscape(A4),
+        pagesize=A4,  # 🔥 AGORA EM PÉ
         rightMargin=5,
         leftMargin=5,
         topMargin=5,
@@ -145,7 +146,7 @@ def gerar_pdf(bloco):
         ["Cálculo MIX", f"{resultado_mix:.2f}"],
     ]
 
-    header_table = Table(header, colWidths=[140, 300])
+    header_table = Table(header, colWidths=[110, 250])
     header_table.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
         ('BACKGROUND', (0,0), (0,-1), colors.whitesmoke),
@@ -154,7 +155,7 @@ def gerar_pdf(bloco):
         ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
-    tabela = [["CLIENTE", "NF", "VOL", "PESO", "REDESPACHO", "CONF."]]
+    tabela = [["CLIENTE", "NF", "VOL", "PESO", "REDESP.", "CONF."]]
 
     for _, row in bloco.iterrows():
         redespacho = str(row["REDESPACHO"]).strip().upper()
@@ -169,7 +170,8 @@ def gerar_pdf(bloco):
             ""
         ])
 
-    table = Table(tabela, colWidths=[210, 70, 45, 55, 90, 40])
+    # 🔥 COLUNAS REDUZIDAS PARA CABER EM PÉ
+    table = Table(tabela, colWidths=[150, 60, 40, 50, 70, 35])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
         ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
@@ -186,6 +188,7 @@ def gerar_pdf(bloco):
     doc.build(elements)
     buffer.seek(0)
     return buffer
+
 
 # 🧩 CARDS
 cols = st.columns(3)
