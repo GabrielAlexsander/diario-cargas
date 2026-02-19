@@ -113,14 +113,14 @@ def gerar_pdf(bloco):
 
     primeira = bloco.iloc[0]
 
-    # 🔹 Soma Cubagem baseada na coluna J (CUBAGEM FINAL)
+    # 🔹 Soma Cubagem
     cubagem_total = 0
     for _, row in bloco.iterrows():
         try:
             cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
             cubagem_total += cubagem_individual
         except:
-            cubagem_individual = 0
+            pass
 
     # 🔹 Soma Peso Total
     peso_total = 0
@@ -156,8 +156,8 @@ def gerar_pdf(bloco):
         ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
-    # 🔥 NOVA COLUNA CUBAGEM INDIVIDUAL
-    tabela = [["CLIENTE", "NF", "VOL", "PESO", "CUB.", "REDESP.", "CONF."]]
+    # 🔥 ADICIONADA COLUNA DESTINO DA NF (COLUNA C)
+    tabela = [["CLIENTE", "DESTINO NF", "NF", "VOL", "PESO", "CUB.", "REDESP.", "CONF."]]
 
     for _, row in bloco.iterrows():
 
@@ -172,6 +172,7 @@ def gerar_pdf(bloco):
 
         tabela.append([
             Paragraph(str(row["CLIENTE"]), style_small),
+            Paragraph(str(row["DESTINO"]), style_small),  # 🔹 DESTINO DA COLUNA C
             Paragraph(str(row["NOTAS FISCAIS"]), style_small),
             Paragraph(str(row["VOLUMES"]), style_small),
             Paragraph(str(row["PESO Kg"]), style_small),
@@ -180,7 +181,7 @@ def gerar_pdf(bloco):
             ""
         ])
 
-    table = Table(tabela, colWidths=[120, 55, 35, 45, 45, 60, 30])
+    table = Table(tabela, colWidths=[95, 70, 50, 30, 40, 40, 55, 25])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
         ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
