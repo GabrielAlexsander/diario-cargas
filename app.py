@@ -87,7 +87,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# 🖨️ PDF EM PÉ
+# 🖨️ PDF (INALTERADO)
 def gerar_pdf(bloco):
 
     buffer = io.BytesIO()
@@ -113,7 +113,6 @@ def gerar_pdf(bloco):
 
     primeira = bloco.iloc[0]
 
-    # 🔹 Soma Cubagem
     cubagem_total = 0
     for _, row in bloco.iterrows():
         try:
@@ -122,7 +121,6 @@ def gerar_pdf(bloco):
         except:
             pass
 
-    # 🔹 Soma Peso Total
     peso_total = 0
     for _, row in bloco.iterrows():
         try:
@@ -156,7 +154,6 @@ def gerar_pdf(bloco):
         ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
-    # 🔥 ADICIONADA COLUNA DESTINO DA NF (COLUNA C)
     tabela = [["CLIENTE", "DESTINO NF", "NF", "VOL", "PESO", "CUB.", "REDESP.", "CONF."]]
 
     for _, row in bloco.iterrows():
@@ -172,7 +169,7 @@ def gerar_pdf(bloco):
 
         tabela.append([
             Paragraph(str(row["CLIENTE"]), style_small),
-            Paragraph(str(row["DESTINO"]), style_small),  # 🔹 DESTINO DA COLUNA C
+            Paragraph(str(row["DESTINO"]), style_small),
             Paragraph(str(row["NOTAS FISCAIS"]), style_small),
             Paragraph(str(row["VOLUMES"]), style_small),
             Paragraph(str(row["PESO Kg"]), style_small),
@@ -200,49 +197,90 @@ def gerar_pdf(bloco):
     return buffer
 
 
-# 🧩 CARDS
-cols = st.columns(3)
+# 🔥 ABAS SEPARADAS
+aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
-for i, bloco in enumerate(blocos):
+with aba_pendentes:
 
-    col = cols[i % 3]
+    cols = st.columns(3)
 
-    with col:
+    for i, bloco in enumerate(blocos):
 
         primeira = bloco.iloc[0]
+        status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
 
-        motorista = primeira["MOTORISTA"]
-        placa = primeira["PLACA"]
-        destino = primeira["DESTINO"]
-        data = primeira["DATA"]
-        gw = primeira["COLETA GW"]
+        if status != "SIM":
 
+            col = cols[i % 3]
+
+            with col:
+
+                motorista = primeira["MOTORISTA"]
+                placa = primeira["PLACA"]
+                destino = primeira["DESTINO"]
+                data = primeira["DATA"]
+                gw = primeira["COLETA GW"]
+
+                pdf = gerar_pdf(bloco)
+
+                st.markdown(f"""
+                <div class="card pendente">
+                    <b>{motorista}</b><br>
+                    Placa: {placa}<br>
+                    Destino: {destino}<br>
+                    Data: {data}<br>
+                    <div class="badge">GW: {gw}</div><br>
+                    <div class="badge badge-pendente">PENDENTE</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.download_button(
+                    "🖨️ Gerar Conferência",
+                    data=pdf,
+                    file_name=f"Carga_{motorista}_{gw}.pdf",
+                    mime="application/pdf",
+                    key=f"pendente_{i}"
+                )
+
+
+with aba_finalizados:
+
+    cols = st.columns(3)
+
+    for i, bloco in enumerate(blocos):
+
+        primeira = bloco.iloc[0]
         status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
 
         if status == "SIM":
-            classe = "card finalizado"
-            badge = '<div class="badge badge-ok">FINALIZADO</div>'
-        else:
-            classe = "card pendente"
-            badge = '<div class="badge badge-pendente">PENDENTE</div>'
 
-        pdf = gerar_pdf(bloco)
+            col = cols[i % 3]
 
-        st.markdown(f"""
-        <div class="{classe}">
-            <b>{motorista}</b><br>
-            Placa: {placa}<br>
-            Destino: {destino}<br>
-            Data: {data}<br>
-            <div class="badge">GW: {gw}</div><br>
-            {badge}
-        </div>
-        """, unsafe_allow_html=True)
+            with col:
 
-        st.download_button(
-            "🖨️ Gerar Conferência",
-            data=pdf,
-            file_name=f"Carga_{motorista}_{gw}.pdf",
-            mime="application/pdf",
-            key=f"download_{i}"
-        )
+                motorista = primeira["MOTORISTA"]
+                placa = primeira["PLACA"]
+                destino = primeira["DESTINO"]
+                data = primeira["DATA"]
+                gw = primeira["COLETA GW"]
+
+                pdf = gerar_pdf(bloco)
+
+                st.markdown(f"""
+                <div class="card finalizado">
+                    <b>{motorista}</b><br>
+                    Placa: {placa}<br>
+                    Destino: {destino}<br>
+                    Data: {data}<br>
+                    <div class="badge">GW: {gw}</div><br>
+                    <div class="badge badge-ok">FINALIZADO</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.download_button(
+                    "🖨️ Gerar Conferência",
+                    data=pdf,
+                    file_name=f"Carga_{motorista}_{gw}.pdf",
+                    mime="application/pdf",
+                    key=f"finalizado_{i}"
+                )
