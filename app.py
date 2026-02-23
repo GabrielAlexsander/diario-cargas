@@ -7,7 +7,6 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import io
-import base64
 
 st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
@@ -57,6 +56,9 @@ st.markdown("""
     font-size: 13px;
     color: #000000 !important;
 }
+.card b {
+    color: #000000 !important;
+}
 .finalizado {
     background: #e9f9ee;
     border-left: 6px solid #28a745;
@@ -85,14 +87,19 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# 🖨️ PDF
+# 🖨️ PDF (INALTERADO)
 def gerar_pdf(bloco):
 
     buffer = io.BytesIO()
 
-    doc = SimpleDocTemplate(buffer, pagesize=A4,
-                            rightMargin=5,leftMargin=5,
-                            topMargin=5,bottomMargin=5)
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=5,
+        leftMargin=5,
+        topMargin=5,
+        bottomMargin=5
+    )
 
     elements = []
     styles = getSampleStyleSheet()
@@ -107,13 +114,15 @@ def gerar_pdf(bloco):
     primeira = bloco.iloc[0]
 
     cubagem_total = 0
-    peso_total = 0
-
     for _, row in bloco.iterrows():
         try:
-            cubagem_total += float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            cubagem_total += cubagem_individual
         except:
             pass
+
+    peso_total = 0
+    for _, row in bloco.iterrows():
         try:
             peso_total += float(str(row["PESO Kg"]).replace(",", "."))
         except:
@@ -130,34 +139,65 @@ def gerar_pdf(bloco):
         ["Destino", primeira["DESTINO"]],
         ["Data", primeira["DATA"]],
         ["GW", primeira["COLETA GW"]],
-        ["Cubagem Total", f"{cubagem_total:.2f}"],
-        ["Peso Total", f"{peso_total:.2f}"],
+        ["Cubagem Total (Soma das NFs)", f"{cubagem_total:.2f}"],
+        ["Peso Total (Kg)", f"{peso_total:.2f}"],
         ["Cálculo KIT", f"{resultado_kit:.2f}"],
         ["Cálculo MIX", f"{resultado_mix:.2f}"],
     ]
 
     header_table = Table(header, colWidths=[110, 250])
     header_table.setStyle(TableStyle([
-        ('GRID',(0,0),(-1,-1),0.3,colors.grey),
-        ('FONTSIZE',(0,0),(-1,-1),6),
+        ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
+        ('BACKGROUND', (0,0), (0,-1), colors.whitesmoke),
+        ('FONTSIZE', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
+    ]))
+
+    tabela = [["CLIENTE", "DESTINO NF", "NF", "VOL", "PESO", "CUB.", "REDESP.", "CONF."]]
+
+    for _, row in bloco.iterrows():
+
+        redespacho = str(row["REDESPACHO"]).strip().upper()
+        destino_nota = redespacho if redespacho else "ENTREGA DIRETA"
+
+        try:
+            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            cubagem_formatada = f"{cubagem_individual:.2f}"
+        except:
+            cubagem_formatada = "0.00"
+
+        tabela.append([
+            Paragraph(str(row["CLIENTE"]), style_small),
+            Paragraph(str(row["DESTINO"]), style_small),
+            Paragraph(str(row["NOTAS FISCAIS"]), style_small),
+            Paragraph(str(row["VOLUMES"]), style_small),
+            Paragraph(str(row["PESO Kg"]), style_small),
+            Paragraph(cubagem_formatada, style_small),
+            Paragraph(destino_nota, style_small),
+            ""
+        ])
+
+    table = Table(tabela, colWidths=[95, 70, 50, 30, 40, 40, 55, 25])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
+        ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
+        ('FONTSIZE', (0,0), (-1,-1), 6),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
     elements.append(header_table)
     elements.append(Spacer(1,4))
+    elements.append(table)
 
     doc.build(elements)
     buffer.seek(0)
     return buffer
 
 
-# 🔥 FUNÇÃO PREVIEW SEGURA
-def exibir_pdf_preview(pdf_bytes):
-    b64 = base64.b64encode(pdf_bytes.getvalue()).decode()
-    href = f'<a href="data:application/pdf;base64,{b64}" target="_blank">👁️ Abrir PDF em nova aba</a>'
-    st.markdown(href, unsafe_allow_html=True)
-
-
-# 🔥 ABAS
+# 🔥 ABAS SEPARADAS
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
 with aba_pendentes:
@@ -171,15 +211,28 @@ with aba_pendentes:
 
         if status != "SIM":
 
-            with cols[i % 3]:
+            col = cols[i % 3]
+
+            with col:
 
                 motorista = primeira["MOTORISTA"]
+                placa = primeira["PLACA"]
+                destino = primeira["DESTINO"]
+                data = primeira["DATA"]
                 gw = primeira["COLETA GW"]
 
                 pdf = gerar_pdf(bloco)
 
-                st.markdown(f"### {motorista}")
-                exibir_pdf_preview(pdf)
+                st.markdown(f"""
+                <div class="card pendente">
+                    <b>{motorista}</b><br>
+                    Placa: {placa}<br>
+                    Destino: {destino}<br>
+                    Data: {data}<br>
+                    <div class="badge">GW: {gw}</div><br>
+                    <div class="badge badge-pendente">PENDENTE</div>
+                </div>
+                """, unsafe_allow_html=True)
 
                 st.download_button(
                     "🖨️ Gerar Conferência",
@@ -188,6 +241,7 @@ with aba_pendentes:
                     mime="application/pdf",
                     key=f"pendente_{i}"
                 )
+
 
 with aba_finalizados:
 
@@ -200,15 +254,28 @@ with aba_finalizados:
 
         if status == "SIM":
 
-            with cols[i % 3]:
+            col = cols[i % 3]
+
+            with col:
 
                 motorista = primeira["MOTORISTA"]
+                placa = primeira["PLACA"]
+                destino = primeira["DESTINO"]
+                data = primeira["DATA"]
                 gw = primeira["COLETA GW"]
 
                 pdf = gerar_pdf(bloco)
 
-                st.markdown(f"### {motorista}")
-                exibir_pdf_preview(pdf)
+                st.markdown(f"""
+                <div class="card finalizado">
+                    <b>{motorista}</b><br>
+                    Placa: {placa}<br>
+                    Destino: {destino}<br>
+                    Data: {data}<br>
+                    <div class="badge">GW: {gw}</div><br>
+                    <div class="badge badge-ok">FINALIZADO</div>
+                </div>
+                """, unsafe_allow_html=True)
 
                 st.download_button(
                     "🖨️ Gerar Conferência",
