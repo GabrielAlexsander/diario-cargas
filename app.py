@@ -7,6 +7,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import io
+import base64
 
 st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
@@ -87,7 +88,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# 🖨️ PDF (INALTERADO)
+# 🖨️ PDF
 def gerar_pdf(bloco):
 
     buffer = io.BytesIO()
@@ -197,8 +198,22 @@ def gerar_pdf(bloco):
     return buffer
 
 
-# 🔥 ABAS SEPARADAS
+# 🔥 ABAS
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
+
+
+def exibir_pdf_preview(pdf_bytes, key):
+    base64_pdf = base64.b64encode(pdf_bytes.read()).decode("utf-8")
+    pdf_display = f"""
+        <iframe
+            src="data:application/pdf;base64,{base64_pdf}"
+            width="100%"
+            height="500"
+            type="application/pdf">
+        </iframe>
+    """
+    st.markdown(pdf_display, unsafe_allow_html=True)
+
 
 with aba_pendentes:
 
@@ -233,6 +248,9 @@ with aba_pendentes:
                     <div class="badge badge-pendente">PENDENTE</div>
                 </div>
                 """, unsafe_allow_html=True)
+
+                with st.expander("👁️ Visualizar PDF"):
+                    exibir_pdf_preview(pdf, f"prev_p_{i}")
 
                 st.download_button(
                     "🖨️ Gerar Conferência",
@@ -276,6 +294,9 @@ with aba_finalizados:
                     <div class="badge badge-ok">FINALIZADO</div>
                 </div>
                 """, unsafe_allow_html=True)
+
+                with st.expander("👁️ Visualizar PDF"):
+                    exibir_pdf_preview(pdf, f"prev_f_{i}")
 
                 st.download_button(
                     "🖨️ Gerar Conferência",
