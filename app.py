@@ -7,7 +7,6 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import io
-import base64
 
 st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
@@ -202,17 +201,9 @@ def gerar_pdf(bloco):
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
 
-def exibir_pdf_preview(pdf_bytes, key):
-    base64_pdf = base64.b64encode(pdf_bytes.read()).decode("utf-8")
-    pdf_display = f"""
-        <iframe
-            src="data:application/pdf;base64,{base64_pdf}"
-            width="100%"
-            height="500"
-            type="application/pdf">
-        </iframe>
-    """
-    st.markdown(pdf_display, unsafe_allow_html=True)
+def exibir_pdf_preview(pdf_bytes):
+    pdf_bytes.seek(0)
+    st.pdf_viewer(pdf_bytes.read(), height=600)
 
 
 with aba_pendentes:
@@ -250,7 +241,7 @@ with aba_pendentes:
                 """, unsafe_allow_html=True)
 
                 with st.expander("👁️ Visualizar PDF"):
-                    exibir_pdf_preview(pdf, f"prev_p_{i}")
+                    exibir_pdf_preview(pdf)
 
                 st.download_button(
                     "🖨️ Gerar Conferência",
@@ -296,7 +287,7 @@ with aba_finalizados:
                 """, unsafe_allow_html=True)
 
                 with st.expander("👁️ Visualizar PDF"):
-                    exibir_pdf_preview(pdf, f"prev_f_{i}")
+                    exibir_pdf_preview(pdf)
 
                 st.download_button(
                     "🖨️ Gerar Conferência",
