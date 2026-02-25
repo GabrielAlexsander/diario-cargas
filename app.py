@@ -116,8 +116,7 @@ def gerar_pdf(bloco):
     cubagem_total = 0
     for _, row in bloco.iterrows():
         try:
-            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
-            cubagem_total += cubagem_individual
+            cubagem_total += float(str(row["CUBAGEM FINAL"]).replace(",", "."))
         except:
             pass
 
@@ -154,64 +153,35 @@ def gerar_pdf(bloco):
         ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
-    tabela = [["CLIENTE", "DESTINO NF", "NF", "VOL", "PESO", "CUB.", "REDESP.", "CONF."]]
-
-    for _, row in bloco.iterrows():
-
-        redespacho = str(row["REDESPACHO"]).strip().upper()
-        destino_nota = redespacho if redespacho else "ENTREGA DIRETA"
-
-        try:
-            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
-            cubagem_formatada = f"{cubagem_individual:.2f}"
-        except:
-            cubagem_formatada = "0.00"
-
-        tabela.append([
-            Paragraph(str(row["CLIENTE"]), style_small),
-            Paragraph(str(row["DESTINO"]), style_small),
-            Paragraph(str(row["NOTAS FISCAIS"]), style_small),
-            Paragraph(str(row["VOLUMES"]), style_small),
-            Paragraph(str(row["PESO Kg"]), style_small),
-            Paragraph(cubagem_formatada, style_small),
-            Paragraph(destino_nota, style_small),
-            ""
-        ])
-
-    table = Table(tabela, colWidths=[95, 70, 50, 30, 40, 40, 55, 25])
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-        ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
-        ('FONTSIZE', (0,0), (-1,-1), 6),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
-        ('TOPPADDING', (0,0), (-1,-1), 2),
-    ]))
-
     elements.append(header_table)
     elements.append(Spacer(1,4))
-    elements.append(table)
 
     doc.build(elements)
     buffer.seek(0)
     return buffer
 
 
-# 🔥 ABAS SEPARADAS
+# 🔥 ABAS
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
+
+# =========================
+# ABA PENDENTES (CORRIGIDA)
+# =========================
 with aba_pendentes:
 
     cols = st.columns(3)
+    contador = 0
 
-    for i, bloco in enumerate(blocos):
+    for bloco in blocos:
 
         primeira = bloco.iloc[0]
         status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
 
         if status != "SIM":
 
-            col = cols[i % 3]
+            col = cols[contador % 3]
+            contador += 1
 
             with col:
 
@@ -239,22 +209,27 @@ with aba_pendentes:
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
-                    key=f"pendente_{i}"
+                    key=f"pendente_{contador}"
                 )
 
 
+# =========================
+# ABA FINALIZADOS (CORRIGIDA)
+# =========================
 with aba_finalizados:
 
     cols = st.columns(3)
+    contador = 0
 
-    for i, bloco in enumerate(blocos):
+    for bloco in blocos:
 
         primeira = bloco.iloc[0]
         status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
 
         if status == "SIM":
 
-            col = cols[i % 3]
+            col = cols[contador % 3]
+            contador += 1
 
             with col:
 
@@ -282,5 +257,5 @@ with aba_finalizados:
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
-                    key=f"finalizado_{i}"
+                    key=f"finalizado_{contador}"
                 )
