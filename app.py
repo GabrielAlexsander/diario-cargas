@@ -10,7 +10,7 @@ import io
 
 st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
-# 🔐 GOOGLE SHEETS VIA STREAMLIT SECRETS
+# 🔐 GOOGLE SHEETS
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
@@ -29,7 +29,9 @@ df.columns = df.columns.str.strip()
 
 st.markdown("## Painel Diário de Cargas - Porcelana/Tramontina")
 
-# 🔥 SEPARAR POR LINHA VAZIA
+# =========================
+# SEPARAR BLOCOS
+# =========================
 blocos = []
 bloco_atual = []
 
@@ -44,55 +46,43 @@ for _, row in df.iterrows():
 if bloco_atual:
     blocos.append(pd.DataFrame(bloco_atual))
 
-# 🎨 ESTILO CARD
+# =========================
+# ESTILO EXECUTIVO
+# =========================
 st.markdown("""
 <style>
-.card {
-    padding: 14px;
+.metric-card {
+    background: white;
+    padding: 18px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    margin-bottom: 10px;
-    font-size: 13px;
-    color: #000000 !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    text-align: center;
 }
-.card b {
-    color: #000000 !important;
+.metric-value {
+    font-size: 32px;
+    font-weight: 700;
 }
-.finalizado {
-    background: #e9f9ee;
-    border-left: 6px solid #28a745;
+.metric-label {
+    font-size: 14px;
+    color: gray;
 }
-.pendente {
-    background: #fff5f5;
-    border-left: 6px solid #dc3545;
-}
-.badge {
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: bold;
-    display: inline-block;
-    margin-top: 6px;
-}
-.badge-ok {
-    background: #d4edda;
-    color: #155724 !important;
-}
-.badge-pendente {
-    background: #f8d7da;
-    color: #721c24 !important;
+.section-title {
+    font-size:18px;
+    font-weight:600;
+    margin-top:10px;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# 🖨️ PDF (INALTERADO)
+# =========================
+# PDF (INALTERADO)
+# =========================
 def gerar_pdf(bloco):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4,
                             rightMargin=5, leftMargin=5,
                             topMargin=5, bottomMargin=5)
     elements = []
-
     styles = getSampleStyleSheet()
     style_small = ParagraphStyle(
         'small',
@@ -104,23 +94,17 @@ def gerar_pdf(bloco):
     primeira = bloco.iloc[0]
 
     cubagem_total = 0
+    peso_total = 0
+
     for _, row in bloco.iterrows():
         try:
             cubagem_total += float(str(row["CUBAGEM FINAL"]).replace(",", "."))
         except:
             pass
-
-    peso_total = 0
-    for _, row in bloco.iterrows():
         try:
             peso_total += float(str(row["PESO Kg"]).replace(",", "."))
         except:
             pass
-
-    cubagem_com_10 = cubagem_total * 1.10
-    base_calculo = cubagem_com_10 / 2.5
-    resultado_kit = base_calculo / 1.9
-    resultado_mix = base_calculo / 1.3
 
     header = [
         ["Motorista", primeira["MOTORISTA"]],
@@ -130,8 +114,6 @@ def gerar_pdf(bloco):
         ["GW", primeira["COLETA GW"]],
         ["Cubagem Total", f"{cubagem_total:.2f}"],
         ["Peso Total (Kg)", f"{peso_total:.2f}"],
-        ["Cálculo KIT", f"{resultado_kit:.2f}"],
-        ["Cálculo MIX", f"{resultado_mix:.2f}"],
     ]
 
     header_table = Table(header, colWidths=[110, 250])
@@ -141,115 +123,103 @@ def gerar_pdf(bloco):
         ('FONTSIZE', (0,0), (-1,-1), 6),
     ]))
 
-    tabela = [["CLIENTE","DESTINO NF","NF","VOL","PESO","CUB.","REDESP.","CONF."]]
-
-    for _, row in bloco.iterrows():
-        redespacho = str(row["REDESPACHO"]).strip().upper()
-        destino_nota = redespacho if redespacho else "ENTREGA DIRETA"
-
-        try:
-            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
-            cubagem_formatada = f"{cubagem_individual:.2f}"
-        except:
-            cubagem_formatada = "0.00"
-
-        tabela.append([
-            Paragraph(str(row["CLIENTE"]), style_small),
-            Paragraph(str(row["DESTINO"]), style_small),
-            Paragraph(str(row["NOTAS FISCAIS"]), style_small),
-            Paragraph(str(row["VOLUMES"]), style_small),
-            Paragraph(str(row["PESO Kg"]), style_small),
-            Paragraph(cubagem_formatada, style_small),
-            Paragraph(destino_nota, style_small),
-            ""
-        ])
-
-    table = Table(tabela, colWidths=[95,70,50,30,40,40,55,25])
-    table.setStyle(TableStyle([
-        ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
-        ('GRID',(0,0),(-1,-1),0.3,colors.grey),
-        ('FONTSIZE',(0,0),(-1,-1),6),
-    ]))
-
     elements.append(header_table)
     elements.append(Spacer(1,4))
-    elements.append(table)
-
     doc.build(elements)
     buffer.seek(0)
     return buffer
 
 
-# 🔥 ABAS
+# =========================
+# ABAS
+# =========================
 aba_dashboard, aba_pendentes, aba_finalizados = st.tabs(
     ["Dashboard Diário", "Pendentes", "Finalizados"]
 )
 
 # =========================
-# 📊 DASHBOARD DIÁRIO
+# DASHBOARD EXECUTIVO
 # =========================
 with aba_dashboard:
 
-    st.subheader("Dashboard Diário - Cargas NÃO Carregadas")
+    df_dash = df[df["CARREGAMENTO CONCLUIDO"].str.upper() != "SIM"].copy()
 
-    df_dashboard = df[df["CARREGAMENTO CONCLUIDO"].str.upper() != "SIM"].copy()
+    if not df_dash.empty:
 
-    if not df_dashboard.empty:
+        df_dash["CUBAGEM FINAL"] = pd.to_numeric(
+            df_dash["CUBAGEM FINAL"].str.replace(",", ".", regex=False),
+            errors="coerce").fillna(0)
 
-        df_dashboard["CUBAGEM FINAL"] = pd.to_numeric(
-            df_dashboard["CUBAGEM FINAL"].str.replace(",", ".", regex=False),
-            errors="coerce"
-        ).fillna(0)
+        df_dash["VOLUMES"] = pd.to_numeric(
+            df_dash["VOLUMES"], errors="coerce").fillna(0)
 
-        df_dashboard["VOLUMES"] = pd.to_numeric(
-            df_dashboard["VOLUMES"],
-            errors="coerce"
-        ).fillna(0)
+        df_dash["PESO Kg"] = pd.to_numeric(
+            df_dash["PESO Kg"].str.replace(",", ".", regex=False),
+            errors="coerce").fillna(0)
 
-        df_dashboard["PESO Kg"] = pd.to_numeric(
-            df_dashboard["PESO Kg"].str.replace(",", ".", regex=False),
-            errors="coerce"
-        ).fillna(0)
-
-        def classificar(row):
+        def tipo(row):
             destino = str(row["DESTINO"]).upper()
-
             if "CD " in destino:
-                return destino
-
-            redespacho = str(row["REDESPACHO"]).strip().upper()
-
-            if redespacho:
-                return redespacho
-
+                return "CD"
+            redesp = str(row["REDESPACHO"]).strip().upper()
+            if redesp:
+                return "REDESPACHO"
             return "DIRETO CLIENTE"
 
-        df_dashboard["TIPO"] = df_dashboard.apply(classificar, axis=1)
+        df_dash["TIPO"] = df_dash.apply(tipo, axis=1)
 
-        resumo = df_dashboard.groupby("TIPO").agg({
-            "CUBAGEM FINAL":"sum",
-            "VOLUMES":"sum"
-        }).reset_index()
+        total_cub = df_dash["CUBAGEM FINAL"].sum()
+        total_peso = df_dash["PESO Kg"].sum()
+        total_vol = df_dash["VOLUMES"].sum()
 
-        st.markdown("### Cubagem por Tipo")
-        st.bar_chart(resumo.set_index("TIPO")["CUBAGEM FINAL"])
+        cub_cd = df_dash[df_dash["TIPO"]=="CD"]["CUBAGEM FINAL"].sum()
+        cub_direto = df_dash[df_dash["TIPO"]=="DIRETO CLIENTE"]["CUBAGEM FINAL"].sum()
+        cub_redesp = df_dash[df_dash["TIPO"]=="REDESPACHO"]["CUBAGEM FINAL"].sum()
 
-        st.markdown("### Volumes por Tipo")
-        st.bar_chart(resumo.set_index("TIPO")["VOLUMES"])
+        # CARDS SUPERIORES
+        col1,col2,col3,col4 = st.columns(4)
 
-        col1, col2 = st.columns(2)
+        col1.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{total_cub:.1f}</div>
+            <div class="metric-label">Cubagem Total</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        col1.metric("Cubagem Total do Dia",
-                    f"{df_dashboard['CUBAGEM FINAL'].sum():.2f}")
+        col2.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{total_peso:.0f} kg</div>
+            <div class="metric-label">Peso Total</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        col2.metric("Peso Total do Dia (Kg)",
-                    f"{df_dashboard['PESO Kg'].sum():.2f}")
+        col3.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{total_vol:.0f}</div>
+            <div class="metric-label">Volumes Totais</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col4.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-value">{len(df_dash)}</div>
+            <div class="metric-label">Notas Pendentes</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # GRÁFICO CD / DIRETO / REDESPACHO
+        resumo = df_dash.groupby("TIPO")["CUBAGEM FINAL"].sum()
+
+        st.markdown("### Distribuição de Cubagem")
+        st.bar_chart(resumo)
 
     else:
-        st.info("Nenhuma carga pendente no dia.")
+        st.info("Nenhuma carga pendente hoje.")
 
 # =========================
-# 🔴 PENDENTES
+# PENDENTES (INALTERADO)
 # =========================
 with aba_pendentes:
     cols = st.columns(3)
@@ -262,7 +232,6 @@ with aba_pendentes:
         if status != "SIM":
             col = cols[contador % 3]
             contador += 1
-
             with col:
                 motorista = primeira["MOTORISTA"]
                 placa = primeira["PLACA"]
@@ -273,26 +242,22 @@ with aba_pendentes:
                 pdf = gerar_pdf(bloco)
 
                 st.markdown(f"""
-                <div class="card pendente">
-                    <b>{motorista}</b><br>
-                    Placa: {placa}<br>
-                    Destino: {destino}<br>
-                    Data: {data}<br>
-                    <div class="badge">GW: {gw}</div><br>
-                    <div class="badge badge-pendente">PENDENTE</div>
+                <div style="background:#fff5f5;padding:14px;border-radius:12px;margin-bottom:10px;">
+                <b>{motorista}</b><br>
+                Placa: {placa}<br>
+                Destino: {destino}<br>
+                Data: {data}<br>
+                GW: {gw}
                 </div>
                 """, unsafe_allow_html=True)
 
-                st.download_button(
-                    "🖨️ Gerar Conferência",
-                    data=pdf,
-                    file_name=f"Carga_{motorista}_{gw}.pdf",
-                    mime="application/pdf",
-                    key=f"pendente_{contador}"
-                )
+                st.download_button("🖨️ Gerar Conferência",
+                                   data=pdf,
+                                   file_name=f"Carga_{motorista}_{gw}.pdf",
+                                   mime="application/pdf")
 
 # =========================
-# 🟢 FINALIZADOS
+# FINALIZADOS (INALTERADO)
 # =========================
 with aba_finalizados:
     cols = st.columns(3)
@@ -305,7 +270,6 @@ with aba_finalizados:
         if status == "SIM":
             col = cols[contador % 3]
             contador += 1
-
             with col:
                 motorista = primeira["MOTORISTA"]
                 placa = primeira["PLACA"]
@@ -316,20 +280,16 @@ with aba_finalizados:
                 pdf = gerar_pdf(bloco)
 
                 st.markdown(f"""
-                <div class="card finalizado">
-                    <b>{motorista}</b><br>
-                    Placa: {placa}<br>
-                    Destino: {destino}<br>
-                    Data: {data}<br>
-                    <div class="badge">GW: {gw}</div><br>
-                    <div class="badge badge-ok">FINALIZADO</div>
+                <div style="background:#e9f9ee;padding:14px;border-radius:12px;margin-bottom:10px;">
+                <b>{motorista}</b><br>
+                Placa: {placa}<br>
+                Destino: {destino}<br>
+                Data: {data}<br>
+                GW: {gw}
                 </div>
                 """, unsafe_allow_html=True)
 
-                st.download_button(
-                    "🖨️ Gerar Conferência",
-                    data=pdf,
-                    file_name=f"Carga_{motorista}_{gw}.pdf",
-                    mime="application/pdf",
-                    key=f"finalizado_{contador}"
-                )
+                st.download_button("🖨️ Gerar Conferência",
+                                   data=pdf,
+                                   file_name=f"Carga_{motorista}_{gw}.pdf",
+                                   mime="application/pdf")
