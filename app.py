@@ -88,16 +88,9 @@ st.markdown("""
 # 🖨️ PDF (INALTERADO)
 def gerar_pdf(bloco):
     buffer = io.BytesIO()
-
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
-        rightMargin=5,
-        leftMargin=5,
-        topMargin=5,
-        bottomMargin=5
-    )
-
+    doc = SimpleDocTemplate(buffer, pagesize=A4,
+                            rightMargin=5, leftMargin=5,
+                            topMargin=5, bottomMargin=5)
     elements = []
 
     styles = getSampleStyleSheet()
@@ -113,8 +106,7 @@ def gerar_pdf(bloco):
     cubagem_total = 0
     for _, row in bloco.iterrows():
         try:
-            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
-            cubagem_total += cubagem_individual
+            cubagem_total += float(str(row["CUBAGEM FINAL"]).replace(",", "."))
         except:
             pass
 
@@ -136,7 +128,7 @@ def gerar_pdf(bloco):
         ["Destino", primeira["DESTINO"]],
         ["Data", primeira["DATA"]],
         ["GW", primeira["COLETA GW"]],
-        ["Cubagem Total (Soma das NFs)", f"{cubagem_total:.2f}"],
+        ["Cubagem Total", f"{cubagem_total:.2f}"],
         ["Peso Total (Kg)", f"{peso_total:.2f}"],
         ["Cálculo KIT", f"{resultado_kit:.2f}"],
         ["Cálculo MIX", f"{resultado_mix:.2f}"],
@@ -147,11 +139,9 @@ def gerar_pdf(bloco):
         ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
         ('BACKGROUND', (0,0), (0,-1), colors.whitesmoke),
         ('FONTSIZE', (0,0), (-1,-1), 6),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
-        ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
-    tabela = [["CLIENTE", "DESTINO NF", "NF", "VOL", "PESO", "CUB.", "REDESP.", "CONF."]]
+    tabela = [["CLIENTE","DESTINO NF","NF","VOL","PESO","CUB.","REDESP.","CONF."]]
 
     for _, row in bloco.iterrows():
         redespacho = str(row["REDESPACHO"]).strip().upper()
@@ -174,14 +164,11 @@ def gerar_pdf(bloco):
             ""
         ])
 
-    table = Table(tabela, colWidths=[95, 70, 50, 30, 40, 40, 55, 25])
+    table = Table(tabela, colWidths=[95,70,50,30,40,40,55,25])
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-        ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
-        ('FONTSIZE', (0,0), (-1,-1), 6),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
-        ('TOPPADDING', (0,0), (-1,-1), 2),
+        ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
+        ('GRID',(0,0),(-1,-1),0.3,colors.grey),
+        ('FONTSIZE',(0,0),(-1,-1),6),
     ]))
 
     elements.append(header_table)
@@ -192,10 +179,78 @@ def gerar_pdf(bloco):
     buffer.seek(0)
     return buffer
 
-# 🔥 ABAS SEPARADAS
-aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
+# 🔥 ABAS
+aba_dashboard, aba_pendentes, aba_finalizados = st.tabs(
+    ["Dashboard Diário", "Pendentes", "Finalizados"]
+)
+
+# =========================
+# 📊 DASHBOARD DIÁRIO
+# =========================
+with aba_dashboard:
+
+    st.subheader("Dashboard Diário - Cargas NÃO Carregadas")
+
+    df_dashboard = df[df["CARREGAMENTO CONCLUIDO"].str.upper() != "SIM"].copy()
+
+    if not df_dashboard.empty:
+
+        df_dashboard["CUBAGEM FINAL"] = pd.to_numeric(
+            df_dashboard["CUBAGEM FINAL"].str.replace(",", ".", regex=False),
+            errors="coerce"
+        ).fillna(0)
+
+        df_dashboard["VOLUMES"] = pd.to_numeric(
+            df_dashboard["VOLUMES"],
+            errors="coerce"
+        ).fillna(0)
+
+        df_dashboard["PESO Kg"] = pd.to_numeric(
+            df_dashboard["PESO Kg"].str.replace(",", ".", regex=False),
+            errors="coerce"
+        ).fillna(0)
+
+        def classificar(row):
+            destino = str(row["DESTINO"]).upper()
+
+            if "CD " in destino:
+                return destino
+
+            redespacho = str(row["REDESPACHO"]).strip().upper()
+
+            if redespacho:
+                return redespacho
+
+            return "DIRETO CLIENTE"
+
+        df_dashboard["TIPO"] = df_dashboard.apply(classificar, axis=1)
+
+        resumo = df_dashboard.groupby("TIPO").agg({
+            "CUBAGEM FINAL":"sum",
+            "VOLUMES":"sum"
+        }).reset_index()
+
+        st.markdown("### Cubagem por Tipo")
+        st.bar_chart(resumo.set_index("TIPO")["CUBAGEM FINAL"])
+
+        st.markdown("### Volumes por Tipo")
+        st.bar_chart(resumo.set_index("TIPO")["VOLUMES"])
+
+        col1, col2 = st.columns(2)
+
+        col1.metric("Cubagem Total do Dia",
+                    f"{df_dashboard['CUBAGEM FINAL'].sum():.2f}")
+
+        col2.metric("Peso Total do Dia (Kg)",
+                    f"{df_dashboard['PESO Kg'].sum():.2f}")
+
+    else:
+        st.info("Nenhuma carga pendente no dia.")
+
+# =========================
 # 🔴 PENDENTES
+# =========================
 with aba_pendentes:
     cols = st.columns(3)
     contador = 0
@@ -236,7 +291,9 @@ with aba_pendentes:
                     key=f"pendente_{contador}"
                 )
 
+# =========================
 # 🟢 FINALIZADOS
+# =========================
 with aba_finalizados:
     cols = st.columns(3)
     contador = 0
