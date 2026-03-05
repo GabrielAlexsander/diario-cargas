@@ -214,6 +214,7 @@ with aba_pendentes:
                 destino = primeira["DESTINO"]
                 data = primeira["DATA"]
                 gw = primeira["COLETA GW"]
+                tipo_carga = primeira["TIPO DE CARGA"]
 
                 pdf = gerar_pdf(bloco)
 
@@ -222,6 +223,7 @@ with aba_pendentes:
                     <b>{motorista}</b><br>
                     Placa: {placa}<br>
                     Destino: {destino}<br>
+                    Tipo de Carga: {tipo_carga}<br>
                     Data: {data}<br>
                     <div class="badge">GW: {gw}</div><br>
                     <div class="badge badge-pendente">PENDENTE</div>
@@ -255,6 +257,7 @@ with aba_finalizados:
                 destino = primeira["DESTINO"]
                 data = primeira["DATA"]
                 gw = primeira["COLETA GW"]
+                tipo_carga = primeira["TIPO DE CARGA"]
 
                 pdf = gerar_pdf(bloco)
 
@@ -263,6 +266,7 @@ with aba_finalizados:
                     <b>{motorista}</b><br>
                     Placa: {placa}<br>
                     Destino: {destino}<br>
+                    Tipo de Carga: {tipo_carga}<br>
                     Data: {data}<br>
                     <div class="badge">GW: {gw}</div><br>
                     <div class="badge badge-ok">FINALIZADO</div>
