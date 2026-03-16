@@ -85,7 +85,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 🖨️ PDF (INALTERADO)
+# 🖨️ PDF
 def gerar_pdf(bloco):
     buffer = io.BytesIO()
 
@@ -113,8 +113,7 @@ def gerar_pdf(bloco):
     cubagem_total = 0
     for _, row in bloco.iterrows():
         try:
-            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
-            cubagem_total += cubagem_individual
+            cubagem_total += float(str(row["CUBAGEM FINAL"]).replace(",", "."))
         except:
             pass
 
@@ -147,19 +146,19 @@ def gerar_pdf(bloco):
         ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
         ('BACKGROUND', (0,0), (0,-1), colors.whitesmoke),
         ('FONTSIZE', (0,0), (-1,-1), 6),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
-        ('TOPPADDING', (0,0), (-1,-1), 2),
     ]))
 
-    tabela = [["CLIENTE", "DESTINO NF", "NF", "VOL", "PESO", "CUB.", "REDESP.", "CONF."]]
+    # 🔥 CONF AO LADO DA NF
+    tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESP."]]
 
     for _, row in bloco.iterrows():
+
         redespacho = str(row["REDESPACHO"]).strip().upper()
         destino_nota = redespacho if redespacho else "ENTREGA DIRETA"
 
         try:
-            cubagem_individual = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
-            cubagem_formatada = f"{cubagem_individual:.2f}"
+            cubagem = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            cubagem_formatada = f"{cubagem:.2f}"
         except:
             cubagem_formatada = "0.00"
 
@@ -167,21 +166,20 @@ def gerar_pdf(bloco):
             Paragraph(str(row["CLIENTE"]), style_small),
             Paragraph(str(row["DESTINO"]), style_small),
             Paragraph(str(row["NOTAS FISCAIS"]), style_small),
+            "",  # CONF
             Paragraph(str(row["VOLUMES"]), style_small),
             Paragraph(str(row["PESO Kg"]), style_small),
             Paragraph(cubagem_formatada, style_small),
             Paragraph(destino_nota, style_small),
-            ""
         ])
 
-    table = Table(tabela, colWidths=[95, 70, 50, 30, 40, 40, 55, 25])
+    table = Table(tabela, colWidths=[95, 70, 45, 30, 30, 40, 40, 55])
+
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-        ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
-        ('FONTSIZE', (0,0), (-1,-1), 6),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
-        ('TOPPADDING', (0,0), (-1,-1), 2),
+        ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
+        ('GRID',(0,0),(-1,-1),0.3,colors.grey),
+        ('FONTSIZE',(0,0),(-1,-1),6),
+        ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
     ]))
 
     elements.append(header_table)
@@ -192,7 +190,8 @@ def gerar_pdf(bloco):
     buffer.seek(0)
     return buffer
 
-# 🔥 ABAS SEPARADAS
+
+# 🔥 ABAS
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
 # 🔴 PENDENTES
