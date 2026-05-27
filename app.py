@@ -10,7 +10,7 @@ import io
 
 st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
-# 🔐 GOOGLE SHEETS VIA STREAMLIT SECRETS
+#GOOGLE SHEETS VIA STREAMLIT SECRETS
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
@@ -29,7 +29,7 @@ df.columns = df.columns.str.strip()
 
 st.markdown("## Painel Diário de Cargas - Porcelana/Tramontina")
 
-# 🔥 SEPARAR POR LINHA VAZIA
+#SEPARAR POR LINHA VAZIA
 blocos = []
 bloco_atual = []
 
@@ -44,7 +44,7 @@ for _, row in df.iterrows():
 if bloco_atual:
     blocos.append(pd.DataFrame(bloco_atual))
 
-# 🎨 ESTILO CARD
+#ESTILO CARD
 st.markdown("""
 <style>
 .card {
@@ -85,7 +85,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 🖨️ PDF
+#PDF
 def gerar_pdf(bloco):
     buffer = io.BytesIO()
 
@@ -148,7 +148,7 @@ def gerar_pdf(bloco):
         ('FONTSIZE', (0,0), (-1,-1), 6),
     ]))
 
-    # 🔥 CONF AO LADO DA NF
+    #CONFERENCIA AO LADO DA NF
     tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESP."]]
 
     for _, row in bloco.iterrows():
@@ -191,17 +191,40 @@ def gerar_pdf(bloco):
     return buffer
 
 
-# 🔥 ABAS
+#FILTRO DE DATA
+def converter_data(valor):
+    data_convertida = pd.to_datetime(str(valor).strip(), dayfirst=True, errors="coerce")
+    if pd.isna(data_convertida):
+        return None
+    return data_convertida.date()
+
+
+#ABAS
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
-# 🔴 PENDENTES
+#PENDENTES
 with aba_pendentes:
+    filtrar_data_pendentes = st.checkbox("Filtrar por data", key="check_data_pendentes")
+    filtro_data_pendentes = None
+
+    if filtrar_data_pendentes:
+        filtro_data_pendentes = st.date_input(
+            "Data",
+            format="DD/MM/YYYY",
+            key="filtro_data_pendentes"
+        )
+
     cols = st.columns(3)
     contador = 0
 
     for bloco in blocos:
         primeira = bloco.iloc[0]
         status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
+
+        data_bloco = converter_data(primeira["DATA"])
+
+        if filtro_data_pendentes and data_bloco != filtro_data_pendentes:
+            continue
 
         if status != "SIM":
             col = cols[contador % 3]
@@ -230,21 +253,36 @@ with aba_pendentes:
                 """, unsafe_allow_html=True)
 
                 st.download_button(
-                    "🖨️ Gerar Conferência",
+                    "Gerar Conferência",
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
                     key=f"pendente_{contador}"
                 )
 
-# 🟢 FINALIZADOS
+#FINALIZADOS
 with aba_finalizados:
+    filtrar_data_finalizados = st.checkbox("Filtrar por data", key="check_data_finalizados")
+    filtro_data_finalizados = None
+
+    if filtrar_data_finalizados:
+        filtro_data_finalizados = st.date_input(
+            "Data",
+            format="DD/MM/YYYY",
+            key="filtro_data_finalizados"
+        )
+
     cols = st.columns(3)
     contador = 0
 
     for bloco in blocos:
         primeira = bloco.iloc[0]
         status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
+
+        data_bloco = converter_data(primeira["DATA"])
+
+        if filtro_data_finalizados and data_bloco != filtro_data_finalizados:
+            continue
 
         if status == "SIM":
             col = cols[contador % 3]
@@ -273,7 +311,7 @@ with aba_finalizados:
                 """, unsafe_allow_html=True)
 
                 st.download_button(
-                    "🖨️ Gerar Conferência",
+                    "Gerar Conferência",
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
