@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph, PageBreak
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -10,7 +10,7 @@ import io
 
 st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
-#GOOGLE SHEETS VIA STREAMLIT SECRETS
+# GOOGLE SHEETS VIA STREAMLIT SECRETS
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
@@ -29,7 +29,7 @@ df.columns = df.columns.str.strip()
 
 st.markdown("## Painel Diário de Cargas - Porcelana/Tramontina")
 
-#SEPARAR POR LINHA VAZIA
+# SEPARAR POR LINHA VAZIA
 blocos = []
 bloco_atual = []
 
@@ -44,7 +44,7 @@ for _, row in df.iterrows():
 if bloco_atual:
     blocos.append(pd.DataFrame(bloco_atual))
 
-#ESTILO CARD
+# ESTILO CARD
 st.markdown("""
 <style>
 .card {
@@ -85,19 +85,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-#PDF
-def gerar_pdf(bloco):
-    buffer = io.BytesIO()
-
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
-        rightMargin=5,
-        leftMargin=5,
-        topMargin=5,
-        bottomMargin=5
-    )
-
+# PDF
+def montar_elementos_pdf(bloco):
     elements = []
 
     styles = getSampleStyleSheet()
@@ -150,7 +139,6 @@ def gerar_pdf(bloco):
         ('FONTSIZE', (0,0), (-1,-1), 6),
     ]))
 
-    #CONF AO LADO DA NF
     tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESP."]]
 
     for _, row in bloco.iterrows():
@@ -168,7 +156,7 @@ def gerar_pdf(bloco):
             Paragraph(str(row["CLIENTE"]), style_small),
             Paragraph(str(row["DESTINO"]), style_small),
             Paragraph(str(row["NOTAS FISCAIS"]), style_small),
-            "",  # CONF
+            "",
             Paragraph(str(row["VOLUMES"]), style_small),
             Paragraph(str(row["PESO Kg"]), style_small),
             Paragraph(cubagem_formatada, style_small),
@@ -188,12 +176,54 @@ def gerar_pdf(bloco):
     elements.append(Spacer(1,4))
     elements.append(table)
 
+    return elements
+
+
+def gerar_pdf(bloco):
+    buffer = io.BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=5,
+        leftMargin=5,
+        topMargin=5,
+        bottomMargin=5
+    )
+
+    elements = montar_elementos_pdf(bloco)
+
     doc.build(elements)
     buffer.seek(0)
     return buffer
 
 
-#FILTRO DE DATA
+def gerar_pdf_selecionados(blocos_selecionados):
+    buffer = io.BytesIO()
+
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=5,
+        leftMargin=5,
+        topMargin=5,
+        bottomMargin=5
+    )
+
+    elements = []
+
+    for indice, bloco in enumerate(blocos_selecionados):
+        if indice > 0:
+            elements.append(PageBreak())
+
+        elements.extend(montar_elementos_pdf(bloco))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+
+# FILTRO DE DATA
 def converter_data(valor):
     data_convertida = pd.to_datetime(str(valor).strip(), dayfirst=True, errors="coerce")
     if pd.isna(data_convertida):
@@ -201,13 +231,14 @@ def converter_data(valor):
     return data_convertida.date()
 
 
-#ABAS
+# ABAS
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
-#PENDENTES
+# PENDENTES
 with aba_pendentes:
     filtrar_data_pendentes = st.checkbox("Filtrar por data", key="check_data_pendentes")
     filtro_data_pendentes = None
+    selecionados_pendentes = []
 
     if filtrar_data_pendentes:
         filtro_data_pendentes = st.date_input(
@@ -219,7 +250,7 @@ with aba_pendentes:
     cols = st.columns(3)
     contador = 0
 
-    for bloco in blocos:
+    for indice_bloco, bloco in enumerate(blocos):
         primeira = bloco.iloc[0]
         status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
 
@@ -254,6 +285,14 @@ with aba_pendentes:
                 </div>
                 """, unsafe_allow_html=True)
 
+                selecionado = st.checkbox(
+                    "Selecionar",
+                    key=f"selecionar_pendente_{indice_bloco}"
+                )
+
+                if selecionado:
+                    selecionados_pendentes.append(bloco)
+
                 st.download_button(
                     "Gerar Conferência",
                     data=pdf,
@@ -262,10 +301,22 @@ with aba_pendentes:
                     key=f"pendente_{contador}"
                 )
 
-#FINALIZADOS
+    if len(selecionados_pendentes) > 1:
+        pdf_selecionados = gerar_pdf_selecionados(selecionados_pendentes)
+
+        st.download_button(
+            "Imprimir selecionados",
+            data=pdf_selecionados,
+            file_name="Cargas_pendentes_selecionadas.pdf",
+            mime="application/pdf",
+            key="imprimir_pendentes_selecionados"
+        )
+
+# FINALIZADOS
 with aba_finalizados:
     filtrar_data_finalizados = st.checkbox("Filtrar por data", key="check_data_finalizados")
     filtro_data_finalizados = None
+    selecionados_finalizados = []
 
     if filtrar_data_finalizados:
         filtro_data_finalizados = st.date_input(
@@ -277,7 +328,7 @@ with aba_finalizados:
     cols = st.columns(3)
     contador = 0
 
-    for bloco in blocos:
+    for indice_bloco, bloco in enumerate(blocos):
         primeira = bloco.iloc[0]
         status = str(primeira["CARREGAMENTO CONCLUIDO"]).strip().upper()
 
@@ -312,6 +363,14 @@ with aba_finalizados:
                 </div>
                 """, unsafe_allow_html=True)
 
+                selecionado = st.checkbox(
+                    "Selecionar",
+                    key=f"selecionar_finalizado_{indice_bloco}"
+                )
+
+                if selecionado:
+                    selecionados_finalizados.append(bloco)
+
                 st.download_button(
                     "Gerar Conferência",
                     data=pdf,
@@ -319,3 +378,14 @@ with aba_finalizados:
                     mime="application/pdf",
                     key=f"finalizado_{contador}"
                 )
+
+    if len(selecionados_finalizados) > 1:
+        pdf_selecionados = gerar_pdf_selecionados(selecionados_finalizados)
+
+        st.download_button(
+            "Imprimir selecionados",
+            data=pdf_selecionados,
+            file_name="Cargas_finalizadas_selecionadas.pdf",
+            mime="application/pdf",
+            key="imprimir_finalizados_selecionados"
+        )
