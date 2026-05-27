@@ -10,7 +10,7 @@ import io
 
 st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
-# 🔐 GOOGLE SHEETS VIA STREAMLIT SECRETS
+#GOOGLE SHEETS VIA STREAMLIT SECRETS
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
@@ -29,7 +29,7 @@ df.columns = df.columns.str.strip()
 
 st.markdown("## Painel Diário de Cargas - Porcelana/Tramontina")
 
-# 🔥 SEPARAR POR LINHA VAZIA
+#SEPARAR POR LINHA VAZIA
 blocos = []
 bloco_atual = []
 
@@ -44,7 +44,7 @@ for _, row in df.iterrows():
 if bloco_atual:
     blocos.append(pd.DataFrame(bloco_atual))
 
-# 🎨 ESTILO CARD
+#ESTILO CARD
 st.markdown("""
 <style>
 .card {
@@ -85,7 +85,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 🖨️ PDF
+#PDF
 def gerar_pdf(bloco):
     buffer = io.BytesIO()
 
@@ -150,7 +150,7 @@ def gerar_pdf(bloco):
         ('FONTSIZE', (0,0), (-1,-1), 6),
     ]))
 
-    # 🔥 CONF AO LADO DA NF
+    #CONF AO LADO DA NF
     tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESP."]]
 
     for _, row in bloco.iterrows():
@@ -193,7 +193,7 @@ def gerar_pdf(bloco):
     return buffer
 
 
-# 📅 FILTRO DE DATA
+#FILTRO DE DATA
 def converter_data(valor):
     data_convertida = pd.to_datetime(str(valor).strip(), dayfirst=True, errors="coerce")
     if pd.isna(data_convertida):
@@ -201,10 +201,10 @@ def converter_data(valor):
     return data_convertida.date()
 
 
-# 🔥 ABAS
+#ABAS
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
-# 🔴 PENDENTES
+#PENDENTES
 with aba_pendentes:
     filtrar_data_pendentes = st.checkbox("Filtrar por data", key="check_data_pendentes")
     filtro_data_pendentes = None
@@ -255,14 +255,14 @@ with aba_pendentes:
                 """, unsafe_allow_html=True)
 
                 st.download_button(
-                    "🖨️ Gerar Conferência",
+                    "Gerar Conferência",
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
                     key=f"pendente_{contador}"
                 )
 
-# 🟢 FINALIZADOS
+#FINALIZADOS
 with aba_finalizados:
     filtrar_data_finalizados = st.checkbox("Filtrar por data", key="check_data_finalizados")
     filtro_data_finalizados = None
@@ -313,7 +313,7 @@ with aba_finalizados:
                 """, unsafe_allow_html=True)
 
                 st.download_button(
-                    "🖨️ Gerar Conferência",
+                    "Gerar Conferência",
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
