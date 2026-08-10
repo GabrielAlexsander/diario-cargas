@@ -90,72 +90,73 @@ st.markdown("""
 }
 
 .block-container {
-    padding-top: 1.2rem;
+    padding-top: 1.15rem;
     padding-bottom: 2rem;
     max-width: 1280px;
 }
 
 .hero {
     position: relative;
-    display: flex;
+    display: grid;
+    grid-template-columns: 218px minmax(0, 1fr);
     align-items: center;
-    gap: 22px;
+    gap: 18px;
     background: #ffffff;
-    border: 1px solid #dbe3ef;
+    border: 1px solid #d9e2f0;
     border-radius: 12px;
-    padding: 18px 24px;
+    padding: 16px 22px;
     margin-bottom: 22px;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
     overflow: hidden;
 }
 
-.hero::before {
+.hero::after {
     content: "";
     position: absolute;
-    left: 0;
-    top: 0;
+    left: 22px;
+    right: 22px;
     bottom: 0;
-    width: 5px;
-    background: #3764ff;
+    height: 3px;
+    background: linear-gradient(90deg, #2445d8 0%, #8fa8ff 38%, rgba(143, 168, 255, 0) 72%);
 }
 
 .hero-logo {
-    width: 230px;
-    min-width: 230px;
-    height: 74px;
+    width: 218px;
+    min-width: 218px;
+    height: 72px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding-left: 6px;
+    padding-right: 18px;
+    border-right: 1px solid #e2e8f0;
 }
 
 .hero-logo img {
-    width: 220px;
-    max-height: 74px;
+    width: 210px;
+    max-height: 72px;
     object-fit: contain;
     object-position: left center;
     display: block;
 }
 
 .logo-texto {
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 900;
     color: #2445d8;
     letter-spacing: 0;
 }
 
 .hero-info {
+    min-width: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 5px;
-    border-left: 1px solid #e2e8f0;
-    padding-left: 22px;
+    gap: 4px;
 }
 
 .hero-kicker {
     color: #2445d8;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0;
@@ -163,11 +164,12 @@ st.markdown("""
 }
 
 .hero-title {
-    font-size: 34px;
+    font-size: 31px;
     font-weight: 900;
     line-height: 1.05;
     margin: 0;
     color: #172033;
+    text-wrap: pretty;
 }
 
 .hero-title span {
@@ -325,31 +327,26 @@ div.stDownloadButton > button:hover {
 
 @media (max-width: 760px) {
     .hero {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-        padding: 18px;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 16px;
     }
 
     .hero-logo {
         width: 100%;
         min-width: 100%;
-        height: 70px;
-        padding-left: 0;
+        height: 68px;
+        padding-right: 0;
+        border-right: none;
     }
 
     .hero-logo img {
-        width: 220px;
-        max-height: 70px;
-    }
-
-    .hero-info {
-        border-left: none;
-        padding-left: 0;
+        width: 210px;
+        max-height: 68px;
     }
 
     .hero-title {
-        font-size: 30px;
+        font-size: 28px;
     }
 }
 </style>
