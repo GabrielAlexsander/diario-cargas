@@ -90,39 +90,50 @@ st.markdown("""
 }
 
 .block-container {
-    padding-top: 1.5rem;
+    padding-top: 1.2rem;
     padding-bottom: 2rem;
     max-width: 1280px;
 }
 
 .hero {
-    display: flex;
+    position: relative;
+    display: grid;
+    grid-template-columns: 230px 1fr;
     align-items: center;
-    gap: 28px;
+    gap: 22px;
     background: #ffffff;
-    border: 1px solid rgba(20, 37, 80, 0.08);
-    border-left: 6px solid #3764ff;
-    border-radius: 14px;
-    padding: 20px 26px;
+    border: 1px solid #dbe3ef;
+    border-radius: 16px;
+    padding: 18px 26px;
     margin-bottom: 22px;
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: #3764ff;
 }
 
 .hero-logo {
-    width: 245px;
-    min-width: 245px;
-    height: 86px;
+    width: 230px;
+    min-width: 230px;
+    height: 78px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    background: transparent;
-    border-radius: 0;
-    padding: 0;
+    padding-right: 22px;
+    border-right: 1px solid #e2e8f0;
 }
 
 .hero-logo img {
-    width: 245px;
-    max-height: 86px;
+    width: 220px;
+    max-height: 78px;
     object-fit: contain;
     object-position: left center;
     display: block;
@@ -136,29 +147,35 @@ st.markdown("""
 }
 
 .hero-info {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    justify-content: center;
+    gap: 5px;
 }
 
 .hero-kicker {
-    width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     color: #2445d8;
-    background: #eef2ff;
-    border: 1px solid #dbe3ff;
-    border-radius: 999px;
-    padding: 5px 10px;
     font-size: 11px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0;
 }
 
+.hero-kicker::after {
+    content: "";
+    width: 46px;
+    height: 2px;
+    background: #2445d8;
+    border-radius: 999px;
+}
+
 .hero-title {
-    font-size: 36px;
+    font-size: 38px;
     font-weight: 950;
-    line-height: 1.05;
+    line-height: 1;
     margin: 0;
     color: #0f172a;
 }
@@ -168,10 +185,15 @@ st.markdown("""
 }
 
 .hero-subtitle {
-    color: #475569;
-    font-size: 14px;
-    font-weight: 700;
-    margin-top: 0;
+    width: fit-content;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 800;
+    margin-top: 2px;
 }
 
 div[data-testid="stTabs"] button {
@@ -318,22 +340,26 @@ div.stDownloadButton > button:hover {
 
 @media (max-width: 760px) {
     .hero {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-template-columns: 1fr;
+        gap: 12px;
         padding: 18px;
     }
 
     .hero-logo {
         width: 100%;
         min-width: 100%;
+        height: 70px;
+        padding-right: 0;
+        border-right: none;
     }
 
     .hero-logo img {
-        width: 245px;
+        width: 220px;
+        max-height: 70px;
     }
 
     .hero-title {
-        font-size: 28px;
+        font-size: 30px;
     }
 }
 </style>
@@ -346,7 +372,7 @@ st.markdown(f"""
     </div>
     <div class="hero-info">
         <div class="hero-kicker">Painel operacional</div>
-        <h1 class="hero-title">Gestão de cargas</h1>
+        <h1 class="hero-title">Gestão de <span>cargas</span></h1>
         <div class="hero-subtitle">Porcelana - Tramontina</div>
     </div>
 </div>
@@ -417,7 +443,7 @@ def montar_elementos_pdf(bloco):
     resultado_mix = base_calculo / 1.3
 
     titulo_pdf = Paragraph(
-        "<b>Relatório de cargas</b><br/><font size='7' color='#64748b'>Controle diario de expedição - Porcelana / Tramontina</font>",
+        "<b>Gestão de cargas</b><br/><font size='7' color='#64748b'>Porcelana - Tramontina</font>",
         ParagraphStyle(
             "pdf_brand_title",
             parent=styles["Normal"],
@@ -469,7 +495,7 @@ def montar_elementos_pdf(bloco):
         ('BOTTOMPADDING', (0,0), (-1,-1), 4),
     ]))
 
-    tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESPACHO"]]
+    tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESP."]]
 
     for _, row in bloco.iterrows():
 
@@ -635,7 +661,7 @@ with aba_pendentes:
                     selecionados_pendentes.append(bloco)
 
                 st.download_button(
-                    "Gerar Conferencia",
+                    "Gerar Conferência",
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
@@ -720,7 +746,7 @@ with aba_finalizados:
                     selecionados_finalizados.append(bloco)
 
                 st.download_button(
-                    "Gerar Conferencia",
+                    "Gerar Conferência",
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
