@@ -86,7 +86,7 @@ if bloco_atual:
 st.markdown("""
 <style>
 .stApp {
-    background: linear-gradient(180deg, #f7f9fd 0%, #edf2f8 100%);
+    background: #f4f7fb;
 }
 
 .block-container {
@@ -97,16 +97,15 @@ st.markdown("""
 
 .hero {
     position: relative;
-    display: grid;
-    grid-template-columns: 230px 1fr;
+    display: flex;
     align-items: center;
     gap: 22px;
     background: #ffffff;
     border: 1px solid #dbe3ef;
-    border-radius: 16px;
-    padding: 18px 26px;
+    border-radius: 12px;
+    padding: 18px 24px;
     margin-bottom: 22px;
-    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.07);
     overflow: hidden;
 }
 
@@ -123,17 +122,16 @@ st.markdown("""
 .hero-logo {
     width: 230px;
     min-width: 230px;
-    height: 78px;
+    height: 74px;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding-right: 22px;
-    border-right: 1px solid #e2e8f0;
+    padding-left: 6px;
 }
 
 .hero-logo img {
     width: 220px;
-    max-height: 78px;
+    max-height: 74px;
     object-fit: contain;
     object-position: left center;
     display: block;
@@ -142,7 +140,7 @@ st.markdown("""
 .logo-texto {
     font-size: 30px;
     font-weight: 900;
-    color: #3764ff;
+    color: #2445d8;
     letter-spacing: 0;
 }
 
@@ -151,33 +149,25 @@ st.markdown("""
     flex-direction: column;
     justify-content: center;
     gap: 5px;
+    border-left: 1px solid #e2e8f0;
+    padding-left: 22px;
 }
 
 .hero-kicker {
-    display: flex;
-    align-items: center;
-    gap: 10px;
     color: #2445d8;
     font-size: 11px;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0;
-}
-
-.hero-kicker::after {
-    content: "";
-    width: 46px;
-    height: 2px;
-    background: #2445d8;
-    border-radius: 999px;
+    line-height: 1;
 }
 
 .hero-title {
-    font-size: 38px;
-    font-weight: 950;
-    line-height: 1;
+    font-size: 34px;
+    font-weight: 900;
+    line-height: 1.05;
     margin: 0;
-    color: #0f172a;
+    color: #172033;
 }
 
 .hero-title span {
@@ -185,15 +175,10 @@ st.markdown("""
 }
 
 .hero-subtitle {
-    width: fit-content;
-    color: #334155;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 999px;
-    padding: 5px 11px;
-    font-size: 12px;
-    font-weight: 800;
-    margin-top: 2px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 0;
 }
 
 div[data-testid="stTabs"] button {
@@ -340,7 +325,8 @@ div.stDownloadButton > button:hover {
 
 @media (max-width: 760px) {
     .hero {
-        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: flex-start;
         gap: 12px;
         padding: 18px;
     }
@@ -349,13 +335,17 @@ div.stDownloadButton > button:hover {
         width: 100%;
         min-width: 100%;
         height: 70px;
-        padding-right: 0;
-        border-right: none;
+        padding-left: 0;
     }
 
     .hero-logo img {
         width: 220px;
         max-height: 70px;
+    }
+
+    .hero-info {
+        border-left: none;
+        padding-left: 0;
     }
 
     .hero-title {
