@@ -469,7 +469,7 @@ def montar_elementos_pdf(bloco):
         ('BOTTOMPADDING', (0,0), (-1,-1), 4),
     ]))
 
-    tabela = [["CLIENTE", "DESTINO NF", "NF", "CONFERE", "VOLUME", "PESO", "CUB.", "REDESPACHO."]]
+    tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESPACHO"]]
 
     for _, row in bloco.iterrows():
 
