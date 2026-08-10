@@ -6,6 +6,7 @@ from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Par
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.utils import ImageReader
 import io
 import os
 import base64
@@ -17,9 +18,11 @@ def localizar_logo():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     caminhos = [
         os.path.join(base_dir, "logo.png"),
+        os.path.join(base_dir, "Imagem1.png"),
         os.path.join(base_dir, "logo.jpg"),
         os.path.join(base_dir, "logo.jpeg"),
         os.path.join(base_dir, "assets", "logo.png"),
+        os.path.join(base_dir, "assets", "Imagem1.png"),
         os.path.join(base_dir, "assets", "logo.jpg"),
         os.path.join(base_dir, "assets", "logo.jpeg"),
     ]
@@ -83,11 +86,11 @@ if bloco_atual:
 st.markdown("""
 <style>
 .stApp {
-    background: linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+    background: linear-gradient(180deg, #f7f9fd 0%, #edf2f8 100%);
 }
 
 .block-container {
-    padding-top: 1.4rem;
+    padding-top: 1.5rem;
     padding-bottom: 2rem;
     max-width: 1280px;
 }
@@ -95,30 +98,33 @@ st.markdown("""
 .hero {
     display: flex;
     align-items: center;
-    gap: 26px;
+    gap: 28px;
     background: #ffffff;
     border: 1px solid rgba(20, 37, 80, 0.08);
-    border-radius: 18px;
-    padding: 22px 26px;
+    border-left: 6px solid #3764ff;
+    border-radius: 14px;
+    padding: 20px 26px;
     margin-bottom: 22px;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.07);
 }
 
 .hero-logo {
+    width: 245px;
     min-width: 245px;
-    max-width: 245px;
-    min-height: 88px;
+    height: 86px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: #030712;
-    border-radius: 14px;
-    padding: 14px 18px;
+    justify-content: flex-start;
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
 }
 
 .hero-logo img {
-    width: 100%;
-    height: auto;
+    width: 245px;
+    max-height: 86px;
+    object-fit: contain;
+    object-position: left center;
     display: block;
 }
 
@@ -139,12 +145,12 @@ st.markdown("""
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
 
 .hero-title {
     color: #0f172a;
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 900;
     line-height: 1.1;
     margin: 0;
@@ -189,10 +195,11 @@ div.stDownloadButton > button:hover {
 }
 
 .card {
+    min-height: 275px;
     padding: 16px;
-    border-radius: 16px;
+    border-radius: 14px;
     border: 1px solid rgba(15, 23, 42, 0.08);
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
     margin-bottom: 10px;
     font-size: 13px;
     color: #0f172a !important;
@@ -206,7 +213,7 @@ div.stDownloadButton > button:hover {
 .card:hover {
     transform: translateY(-2px);
     transition: all 0.2s ease;
-    box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.11);
 }
 
 .finalizado {
@@ -234,8 +241,9 @@ div.stDownloadButton > button:hover {
 }
 
 .card-title {
-    font-size: 17px;
-    line-height: 1.2;
+    min-height: 42px;
+    font-size: 16px;
+    line-height: 1.25;
     color: #0f172a;
     font-weight: 900;
     word-break: break-word;
@@ -304,8 +312,12 @@ div.stDownloadButton > button:hover {
     }
 
     .hero-logo {
+        width: 100%;
         min-width: 100%;
-        max-width: 100%;
+    }
+
+    .hero-logo img {
+        width: 245px;
     }
 
     .hero-title {
@@ -328,13 +340,23 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+
 # PDF
 def criar_logo_pdf():
     if LOGO_PATH:
-        logo = RLImage(LOGO_PATH)
-        logo.drawHeight = 38
-        logo.drawWidth = logo.imageWidth * logo.drawHeight / logo.imageHeight
-        return logo
+        largura_original, altura_original = ImageReader(LOGO_PATH).getSize()
+
+        largura_maxima = 145
+        altura_maxima = 46
+        proporcao = min(
+            largura_maxima / largura_original,
+            altura_maxima / altura_original
+        )
+
+        largura = largura_original * proporcao
+        altura = altura_original * proporcao
+
+        return RLImage(LOGO_PATH, width=largura, height=altura, hAlign="LEFT")
 
     styles = getSampleStyleSheet()
     return Paragraph(
@@ -360,22 +382,6 @@ def montar_elementos_pdf(bloco):
         leading=6
     )
 
-    style_pdf_title = ParagraphStyle(
-        "pdf_title",
-        parent=styles["Normal"],
-        fontSize=12,
-        leading=14,
-        textColor=colors.HexColor("#0f172a"),
-    )
-
-    style_pdf_subtitle = ParagraphStyle(
-        "pdf_subtitle",
-        parent=styles["Normal"],
-        fontSize=7,
-        leading=9,
-        textColor=colors.HexColor("#64748b"),
-    )
-
     primeira = bloco.iloc[0]
     tipo_movimentacao = primeira.iloc[12] if len(primeira) > 12 else ""
 
@@ -398,24 +404,31 @@ def montar_elementos_pdf(bloco):
     resultado_kit = base_calculo / 1.9
     resultado_mix = base_calculo / 1.3
 
-    titulo_pdf = [
-        Paragraph("<b>Painel Diario de Cargas</b>", style_pdf_title),
-        Paragraph("Porcelana / Tramontina", style_pdf_subtitle),
-    ]
+    titulo_pdf = Paragraph(
+        "<b>Painel Diario de Cargas</b><br/><font size='7' color='#64748b'>Porcelana / Tramontina</font>",
+        ParagraphStyle(
+            "pdf_brand_title",
+            parent=styles["Normal"],
+            fontSize=11,
+            leading=13,
+            textColor=colors.HexColor("#0f172a"),
+        )
+    )
 
     brand_table = Table(
         [[criar_logo_pdf(), titulo_pdf]],
-        colWidths=[145, 390]
+        colWidths=[160, 375],
+        rowHeights=[58]
     )
 
     brand_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#f8fafc")),
-        ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#dbe3ef")),
+        ('BACKGROUND', (0,0), (-1,-1), colors.white),
+        ('BOX', (0,0), (-1,-1), 0.4, colors.HexColor("#dbe3ef")),
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('LEFTPADDING', (0,0), (-1,-1), 8),
         ('RIGHTPADDING', (0,0), (-1,-1), 8),
-        ('TOPPADDING', (0,0), (-1,-1), 8),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
     ]))
 
     header = [
