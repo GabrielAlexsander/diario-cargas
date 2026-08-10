@@ -359,7 +359,7 @@ st.markdown(f"""
     </div>
     <div class="hero-info">
         <div class="hero-kicker">Painel operacional</div>
-        <h1 class="hero-title">Gestão de <span>cargas</span></h1>
+        <h1 class="hero-title">Painel de <span>cargas</span></h1>
         <div class="hero-subtitle">Porcelana - Tramontina</div>
     </div>
 </div>
@@ -430,7 +430,7 @@ def montar_elementos_pdf(bloco):
     resultado_mix = base_calculo / 1.3
 
     titulo_pdf = Paragraph(
-        "<b>Painel de cargas</b><br/><font size='7' color='#64748b'>Porcelana - Tramontina</font>",
+        "<b>Relatório de cargas</b><br/><font size='7' color='#64748b'>Porcelana - Tramontina</font>",
         ParagraphStyle(
             "pdf_brand_title",
             parent=styles["Normal"],
