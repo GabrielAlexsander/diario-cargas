@@ -1,8 +1,3 @@
-Sim, é possível. Para funcionar no Streamlit Cloud, salve a imagem da logo no repositório com o nome `logo.png`, na mesma pasta do `app.py`. O código também procura em `assets/logo.png`.
-
-Segue o código completo modernizado, mantendo a lógica e adicionando a logo no site e no PDF:
-
-```python
 import streamlit as st
 import pandas as pd
 import gspread
