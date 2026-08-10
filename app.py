@@ -137,29 +137,41 @@ st.markdown("""
 
 .hero-info {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 .hero-kicker {
-    color: #3764ff;
-    font-size: 12px;
-    font-weight: 800;
+    width: fit-content;
+    color: #2445d8;
+    background: #eef2ff;
+    border: 1px solid #dbe3ff;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0;
-    margin-bottom: 6px;
 }
 
 .hero-title {
-    color: #0f172a;
-    font-size: 30px;
-    font-weight: 900;
-    line-height: 1.1;
+    font-size: 36px;
+    font-weight: 950;
+    line-height: 1.05;
     margin: 0;
+    color: #0f172a;
+}
+
+.hero-title span {
+    color: #2445d8;
 }
 
 .hero-subtitle {
-    color: #64748b;
-    font-size: 15px;
-    margin-top: 8px;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 0;
 }
 
 div[data-testid="stTabs"] button {
@@ -321,7 +333,7 @@ div.stDownloadButton > button:hover {
     }
 
     .hero-title {
-        font-size: 26px;
+        font-size: 28px;
     }
 }
 </style>
@@ -334,8 +346,8 @@ st.markdown(f"""
     </div>
     <div class="hero-info">
         <div class="hero-kicker">Painel operacional</div>
-        <h1 class="hero-title">Painel Diario de Cargas</h1>
-        <div class="hero-subtitle">Porcelana / Tramontina</div>
+        <h1 class="hero-title">Gestao Inteligente de <span>Cargas</span></h1>
+        <div class="hero-subtitle">Controle diario de expedicao - Porcelana / Tramontina</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -405,7 +417,7 @@ def montar_elementos_pdf(bloco):
     resultado_mix = base_calculo / 1.3
 
     titulo_pdf = Paragraph(
-        "<b>Painel Diario de Cargas</b><br/><font size='7' color='#64748b'>Porcelana / Tramontina</font>",
+        "<b>Gestao Inteligente de Cargas</b><br/><font size='7' color='#64748b'>Controle diario de expedicao - Porcelana / Tramontina</font>",
         ParagraphStyle(
             "pdf_brand_title",
             parent=styles["Normal"],
