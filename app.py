@@ -1,14 +1,56 @@
+Sim, é possível. Para funcionar no Streamlit Cloud, salve a imagem da logo no repositório com o nome `logo.png`, na mesma pasta do `app.py`. O código também procura em `assets/logo.png`.
+
+Segue o código completo modernizado, mantendo a lógica e adicionando a logo no site e no PDF:
+
+```python
 import streamlit as st
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Spacer, Table, TableStyle, Paragraph, PageBreak, Image as RLImage
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 import io
+import os
+import base64
 
-st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
+st.set_page_config(page_title="Painel Diario de Cargas", layout="wide")
+
+
+def localizar_logo():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    caminhos = [
+        os.path.join(base_dir, "logo.png"),
+        os.path.join(base_dir, "logo.jpg"),
+        os.path.join(base_dir, "logo.jpeg"),
+        os.path.join(base_dir, "assets", "logo.png"),
+        os.path.join(base_dir, "assets", "logo.jpg"),
+        os.path.join(base_dir, "assets", "logo.jpeg"),
+    ]
+
+    for caminho in caminhos:
+        if os.path.exists(caminho):
+            return caminho
+
+    return None
+
+
+LOGO_PATH = localizar_logo()
+
+
+def logo_html():
+    if not LOGO_PATH:
+        return '<div class="logo-texto">TRANSNET</div>'
+
+    extensao = os.path.splitext(LOGO_PATH)[1].lower()
+    mime = "jpeg" if extensao in [".jpg", ".jpeg"] else "png"
+
+    with open(LOGO_PATH, "rb") as arquivo:
+        logo_base64 = base64.b64encode(arquivo.read()).decode()
+
+    return f'<img src="data:image/{mime};base64,{logo_base64}" alt="TRANSNET">'
+
 
 # GOOGLE SHEETS VIA STREAMLIT SECRETS
 scope = [
@@ -27,8 +69,6 @@ dados = sheet.get_all_values()
 df = pd.DataFrame(dados[1:], columns=dados[0])
 df.columns = df.columns.str.strip()
 
-st.markdown("## Painel Diário de Cargas - Porcelana/Tramontina")
-
 # SEPARAR POR LINHA VAZIA
 blocos = []
 bloco_atual = []
@@ -44,48 +84,276 @@ for _, row in df.iterrows():
 if bloco_atual:
     blocos.append(pd.DataFrame(bloco_atual))
 
-# ESTILO CARD
+# ESTILO
 st.markdown("""
 <style>
+.stApp {
+    background: linear-gradient(180deg, #f6f8fc 0%, #eef2f7 100%);
+}
+
+.block-container {
+    padding-top: 1.4rem;
+    padding-bottom: 2rem;
+    max-width: 1280px;
+}
+
+.hero {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    background: #ffffff;
+    border: 1px solid rgba(20, 37, 80, 0.08);
+    border-radius: 18px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.hero-logo {
+    min-width: 245px;
+    max-width: 245px;
+    min-height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #030712;
+    border-radius: 14px;
+    padding: 14px 18px;
+}
+
+.hero-logo img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.logo-texto {
+    font-size: 30px;
+    font-weight: 900;
+    color: #3764ff;
+    letter-spacing: 0;
+}
+
+.hero-info {
+    flex: 1;
+}
+
+.hero-kicker {
+    color: #3764ff;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0;
+    margin-bottom: 5px;
+}
+
+.hero-title {
+    color: #0f172a;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin: 0;
+}
+
+.hero-subtitle {
+    color: #64748b;
+    font-size: 15px;
+    margin-top: 8px;
+}
+
+div[data-testid="stTabs"] button {
+    font-weight: 800;
+    color: #475569;
+}
+
+div[data-testid="stTabs"] button[aria-selected="true"] {
+    color: #2445d8;
+}
+
+div[data-testid="stCheckbox"] label {
+    font-weight: 700;
+    color: #334155;
+}
+
+div.stDownloadButton > button {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid rgba(55, 100, 255, 0.18);
+    background: #2445d8;
+    color: #ffffff;
+    font-weight: 800;
+    padding: 0.55rem 0.8rem;
+    transition: all 0.2s ease;
+}
+
+div.stDownloadButton > button:hover {
+    background: #1d35ad;
+    border-color: #1d35ad;
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
 .card {
-    padding: 14px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
     margin-bottom: 10px;
     font-size: 13px;
-    color: #000000 !important;
+    color: #0f172a !important;
+    background: #ffffff;
 }
+
 .card b {
-    color: #000000 !important;
+    color: #0f172a !important;
 }
+
+.card:hover {
+    transform: translateY(-2px);
+    transition: all 0.2s ease;
+    box-shadow: 0 18px 35px rgba(15, 23, 42, 0.12);
+}
+
 .finalizado {
-    background: #e9f9ee;
-    border-left: 6px solid #28a745;
+    border-left: 6px solid #16a34a;
 }
+
 .pendente {
-    background: #fff5f5;
-    border-left: 6px solid #dc3545;
+    border-left: 6px solid #dc2626;
 }
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.card-label {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0;
+    margin-bottom: 4px;
+}
+
+.card-title {
+    font-size: 17px;
+    line-height: 1.2;
+    color: #0f172a;
+    font-weight: 900;
+    word-break: break-word;
+}
+
+.card-grid {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.card-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.card-line span {
+    color: #64748b;
+    font-weight: 700;
+}
+
+.card-line strong {
+    color: #111827;
+    text-align: right;
+    word-break: break-word;
+}
+
 .badge {
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: bold;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
     display: inline-block;
-    margin-top: 6px;
+    white-space: nowrap;
 }
+
 .badge-ok {
-    background: #d4edda;
-    color: #155724 !important;
+    background: #dcfce7;
+    color: #166534 !important;
 }
+
 .badge-pendente {
-    background: #f8d7da;
-    color: #721c24 !important;
+    background: #fee2e2;
+    color: #991b1b !important;
+}
+
+.gw-chip {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #2445d8;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+@media (max-width: 760px) {
+    .hero {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 18px;
+    }
+
+    .hero-logo {
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .hero-title {
+        font-size: 26px;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown(f"""
+<div class="hero">
+    <div class="hero-logo">
+        {logo_html()}
+    </div>
+    <div class="hero-info">
+        <div class="hero-kicker">Painel operacional</div>
+        <h1 class="hero-title">Painel Diario de Cargas</h1>
+        <div class="hero-subtitle">Porcelana / Tramontina</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 # PDF
+def criar_logo_pdf():
+    if LOGO_PATH:
+        logo = RLImage(LOGO_PATH)
+        logo.drawHeight = 38
+        logo.drawWidth = logo.imageWidth * logo.drawHeight / logo.imageHeight
+        return logo
+
+    styles = getSampleStyleSheet()
+    return Paragraph(
+        "<b>TRANSNET</b>",
+        ParagraphStyle(
+            "logo_texto_pdf",
+            parent=styles["Normal"],
+            fontSize=16,
+            leading=18,
+            textColor=colors.HexColor("#2445d8"),
+        )
+    )
+
+
 def montar_elementos_pdf(bloco):
     elements = []
 
@@ -95,6 +363,22 @@ def montar_elementos_pdf(bloco):
         parent=styles['Normal'],
         fontSize=6,
         leading=6
+    )
+
+    style_pdf_title = ParagraphStyle(
+        "pdf_title",
+        parent=styles["Normal"],
+        fontSize=12,
+        leading=14,
+        textColor=colors.HexColor("#0f172a"),
+    )
+
+    style_pdf_subtitle = ParagraphStyle(
+        "pdf_subtitle",
+        parent=styles["Normal"],
+        fontSize=7,
+        leading=9,
+        textColor=colors.HexColor("#64748b"),
     )
 
     primeira = bloco.iloc[0]
@@ -119,24 +403,50 @@ def montar_elementos_pdf(bloco):
     resultado_kit = base_calculo / 1.9
     resultado_mix = base_calculo / 1.3
 
+    titulo_pdf = [
+        Paragraph("<b>Painel Diario de Cargas</b>", style_pdf_title),
+        Paragraph("Porcelana / Tramontina", style_pdf_subtitle),
+    ]
+
+    brand_table = Table(
+        [[criar_logo_pdf(), titulo_pdf]],
+        colWidths=[145, 390]
+    )
+
+    brand_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#f8fafc")),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor("#dbe3ef")),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('LEFTPADDING', (0,0), (-1,-1), 8),
+        ('RIGHTPADDING', (0,0), (-1,-1), 8),
+        ('TOPPADDING', (0,0), (-1,-1), 8),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
+    ]))
+
     header = [
         ["Motorista", primeira["MOTORISTA"]],
         ["Placa", primeira["PLACA"]],
         ["Destino", primeira["DESTINO"]],
         ["Data", primeira["DATA"]],
-        ["Tipo de Movimentação", tipo_movimentacao],
+        ["Tipo de Movimentacao", tipo_movimentacao],
         ["GW", primeira["COLETA GW"]],
         ["Cubagem Total (Soma das NFs)", f"{cubagem_total:.2f}"],
         ["Peso Total (Kg)", f"{peso_total:.2f}"],
-        ["Cálculo KIT", f"{resultado_kit:.2f}"],
-        ["Cálculo MIX", f"{resultado_mix:.2f}"],
+        ["Calculo KIT", f"{resultado_kit:.2f}"],
+        ["Calculo MIX", f"{resultado_mix:.2f}"],
     ]
 
-    header_table = Table(header, colWidths=[110, 250])
+    header_table = Table(header, colWidths=[130, 405])
     header_table.setStyle(TableStyle([
-        ('GRID', (0,0), (-1,-1), 0.3, colors.grey),
-        ('BACKGROUND', (0,0), (0,-1), colors.whitesmoke),
+        ('GRID', (0,0), (-1,-1), 0.3, colors.HexColor("#dbe3ef")),
+        ('BACKGROUND', (0,0), (0,-1), colors.HexColor("#eef2ff")),
+        ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor("#1d35ad")),
         ('FONTSIZE', (0,0), (-1,-1), 6),
+        ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
+        ('LEFTPADDING', (0,0), (-1,-1), 5),
+        ('RIGHTPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
     ]))
 
     tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESP."]]
@@ -166,12 +476,16 @@ def montar_elementos_pdf(bloco):
     table = Table(tabela, colWidths=[95, 70, 45, 30, 30, 40, 40, 55])
 
     table.setStyle(TableStyle([
-        ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
-        ('GRID',(0,0),(-1,-1),0.3,colors.grey),
+        ('BACKGROUND',(0,0),(-1,0),colors.HexColor("#1d35ad")),
+        ('TEXTCOLOR',(0,0),(-1,0),colors.white),
+        ('GRID',(0,0),(-1,-1),0.3,colors.HexColor("#cbd5e1")),
         ('FONTSIZE',(0,0),(-1,-1),6),
+        ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
         ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
     ]))
 
+    elements.append(brand_table)
+    elements.append(Spacer(1,6))
     elements.append(header_table)
     elements.append(Spacer(1,4))
     elements.append(table)
@@ -275,13 +589,20 @@ with aba_pendentes:
 
                 st.markdown(f"""
                 <div class="card pendente">
-                    <b>{motorista}</b><br>
-                    Placa: {placa}<br>
-                    Destino: {destino}<br>
-                    Tipo de Carga: {tipo_carga}<br>
-                    Data: {data}<br>
-                    <div class="badge">GW: {gw}</div><br>
-                    <div class="badge badge-pendente">PENDENTE</div>
+                    <div class="card-top">
+                        <div>
+                            <div class="card-label">Motorista</div>
+                            <div class="card-title">{motorista}</div>
+                        </div>
+                        <div class="badge badge-pendente">PENDENTE</div>
+                    </div>
+                    <div class="card-grid">
+                        <div class="card-line"><span>Placa</span><strong>{placa}</strong></div>
+                        <div class="card-line"><span>Destino</span><strong>{destino}</strong></div>
+                        <div class="card-line"><span>Tipo de Carga</span><strong>{tipo_carga}</strong></div>
+                        <div class="card-line"><span>Data</span><strong>{data}</strong></div>
+                    </div>
+                    <div class="gw-chip">GW: {gw}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -294,7 +615,7 @@ with aba_pendentes:
                     selecionados_pendentes.append(bloco)
 
                 st.download_button(
-                    "Gerar Conferência",
+                    "Gerar Conferencia",
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
@@ -353,13 +674,20 @@ with aba_finalizados:
 
                 st.markdown(f"""
                 <div class="card finalizado">
-                    <b>{motorista}</b><br>
-                    Placa: {placa}<br>
-                    Destino: {destino}<br>
-                    Tipo de Carga: {tipo_carga}<br>
-                    Data: {data}<br>
-                    <div class="badge">GW: {gw}</div><br>
-                    <div class="badge badge-ok">FINALIZADO</div>
+                    <div class="card-top">
+                        <div>
+                            <div class="card-label">Motorista</div>
+                            <div class="card-title">{motorista}</div>
+                        </div>
+                        <div class="badge badge-ok">FINALIZADO</div>
+                    </div>
+                    <div class="card-grid">
+                        <div class="card-line"><span>Placa</span><strong>{placa}</strong></div>
+                        <div class="card-line"><span>Destino</span><strong>{destino}</strong></div>
+                        <div class="card-line"><span>Tipo de Carga</span><strong>{tipo_carga}</strong></div>
+                        <div class="card-line"><span>Data</span><strong>{data}</strong></div>
+                    </div>
+                    <div class="gw-chip">GW: {gw}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -372,7 +700,7 @@ with aba_finalizados:
                     selecionados_finalizados.append(bloco)
 
                 st.download_button(
-                    "Gerar Conferência",
+                    "Gerar Conferencia",
                     data=pdf,
                     file_name=f"Carga_{motorista}_{gw}.pdf",
                     mime="application/pdf",
@@ -389,3 +717,4 @@ with aba_finalizados:
             mime="application/pdf",
             key="imprimir_finalizados_selecionados"
         )
+```
