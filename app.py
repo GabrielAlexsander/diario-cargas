@@ -11,7 +11,7 @@ import io
 import os
 import base64
 
-st.set_page_config(page_title="Painel Diario de Cargas", layout="wide")
+st.set_page_config(page_title="Painel Diário de Cargas", layout="wide")
 
 
 def localizar_logo():
@@ -346,8 +346,8 @@ st.markdown(f"""
     </div>
     <div class="hero-info">
         <div class="hero-kicker">Painel operacional</div>
-        <h1 class="hero-title">Gestao Inteligente de <span>Cargas</span></h1>
-        <div class="hero-subtitle">Controle diario de expedicao - Porcelana / Tramontina</div>
+        <h1 class="hero-title">Gestão diária de cargas</h1>
+        <div class="hero-subtitle">Porcelana - Tramontina</div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -417,7 +417,7 @@ def montar_elementos_pdf(bloco):
     resultado_mix = base_calculo / 1.3
 
     titulo_pdf = Paragraph(
-        "<b>Gestao Inteligente de Cargas</b><br/><font size='7' color='#64748b'>Controle diario de expedicao - Porcelana / Tramontina</font>",
+        "<b>Gestão diária de cargas</b><br/><font size='7' color='#64748b'>Controle diario de expedicao - Porcelana / Tramontina</font>",
         ParagraphStyle(
             "pdf_brand_title",
             parent=styles["Normal"],
