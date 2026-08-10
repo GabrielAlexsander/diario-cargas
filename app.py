@@ -417,7 +417,7 @@ def montar_elementos_pdf(bloco):
     resultado_mix = base_calculo / 1.3
 
     titulo_pdf = Paragraph(
-        "<b>Relatório de cargas</b><br/><font size='7' color='#64748b'>Controle diario de expedicao - Porcelana / Tramontina</font>",
+        "<b>Relatório de cargas</b><br/><font size='7' color='#64748b'>Controle diario de expedição - Porcelana / Tramontina</font>",
         ParagraphStyle(
             "pdf_brand_title",
             parent=styles["Normal"],
@@ -448,12 +448,12 @@ def montar_elementos_pdf(bloco):
         ["Placa", primeira["PLACA"]],
         ["Destino", primeira["DESTINO"]],
         ["Data", primeira["DATA"]],
-        ["Tipo de Movimentacao", tipo_movimentacao],
+        ["Tipo de Movimentação", tipo_movimentacao],
         ["GW", primeira["COLETA GW"]],
         ["Cubagem Total (Soma das NFs)", f"{cubagem_total:.2f}"],
         ["Peso Total (Kg)", f"{peso_total:.2f}"],
-        ["Calculo KIT", f"{resultado_kit:.2f}"],
-        ["Calculo MIX", f"{resultado_mix:.2f}"],
+        ["Cálculo KIT", f"{resultado_kit:.2f}"],
+        ["Cálculo MIX", f"{resultado_mix:.2f}"],
     ]
 
     header_table = Table(header, colWidths=[130, 405])
@@ -469,7 +469,7 @@ def montar_elementos_pdf(bloco):
         ('BOTTOMPADDING', (0,0), (-1,-1), 4),
     ]))
 
-    tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESP."]]
+    tabela = [["CLIENTE", "DESTINO NF", "NF", "CONFERE", "VOLUME", "PESO", "CUB.", "REDESPACHO."]]
 
     for _, row in bloco.iterrows():
 
