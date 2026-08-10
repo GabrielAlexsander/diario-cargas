@@ -712,4 +712,3 @@ with aba_finalizados:
             mime="application/pdf",
             key="imprimir_finalizados_selecionados"
         )
-```
