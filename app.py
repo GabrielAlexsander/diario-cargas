@@ -183,7 +183,7 @@ hero-title {
     color: #475569;
     font-size: 13px;
     font-weight: 700;
-    margin-top: -22px;
+    margin-top: -25px;
     margin-left: 3px;
 }
 
