@@ -183,8 +183,8 @@ hero-title {
     color: #475569;
     font-size: 13px;
     font-weight: 700;
-    margin-top: -25px;
-    margin-left: 3px;
+    margin-top: -26px;
+    margin-left: 2px;
 }
 
 div[data-testid="stTabs"] button {
