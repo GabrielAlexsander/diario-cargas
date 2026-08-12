@@ -183,6 +183,9 @@ st.markdown("""
     font-size: 13px;
     font-weight: 700;
     margin-top: -27px;
+    margin-left: 0;
+    padding-left: 0;
+    line-height: 1;
 }
 
 div[data-testid="stTabs"] button {
