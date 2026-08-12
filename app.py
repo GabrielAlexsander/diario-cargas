@@ -129,6 +129,7 @@ st.markdown("""
     justify-content: flex-start;
     padding-right: 18px;
     border-right: 1px solid #e2e8f0;
+    transform: translateY(6px);
 }
 
 .hero-logo img {
