@@ -34,7 +34,38 @@ def localizar_logo():
     return None
 
 
+def localizar_fundo():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    caminhos = [
+        os.path.join(base_dir, "fundo.png"),
+        os.path.join(base_dir, "fundo.jpg"),
+        os.path.join(base_dir, "fundo.jpeg"),
+        os.path.join(base_dir, "background.png"),
+        os.path.join(base_dir, "background.jpg"),
+        os.path.join(base_dir, "background.jpeg"),
+        os.path.join(base_dir, "hero-bg.png"),
+        os.path.join(base_dir, "hero-bg.jpg"),
+        os.path.join(base_dir, "hero-bg.jpeg"),
+        os.path.join(base_dir, "assets", "fundo.png"),
+        os.path.join(base_dir, "assets", "fundo.jpg"),
+        os.path.join(base_dir, "assets", "fundo.jpeg"),
+        os.path.join(base_dir, "assets", "background.png"),
+        os.path.join(base_dir, "assets", "background.jpg"),
+        os.path.join(base_dir, "assets", "background.jpeg"),
+        os.path.join(base_dir, "assets", "hero-bg.png"),
+        os.path.join(base_dir, "assets", "hero-bg.jpg"),
+        os.path.join(base_dir, "assets", "hero-bg.jpeg"),
+    ]
+
+    for caminho in caminhos:
+        if os.path.exists(caminho):
+            return caminho
+
+    return None
+
+
 LOGO_PATH = localizar_logo()
+FUNDO_PATH = localizar_fundo()
 
 
 def logo_html():
@@ -48,6 +79,26 @@ def logo_html():
         logo_base64 = base64.b64encode(arquivo.read()).decode()
 
     return f'<img src="data:image/{mime};base64,{logo_base64}" alt="TRANSNET">'
+
+
+def fundo_hero_style():
+    if not FUNDO_PATH:
+        return ""
+
+    extensao = os.path.splitext(FUNDO_PATH)[1].lower()
+    mime = "jpeg" if extensao in [".jpg", ".jpeg"] else "png"
+
+    with open(FUNDO_PATH, "rb") as arquivo:
+        fundo_base64 = base64.b64encode(arquivo.read()).decode()
+
+    return (
+        "background-image: "
+        "linear-gradient(90deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.84) 45%, rgba(244,247,251,0.72) 100%), "
+        f"url('data:image/{mime};base64,{fundo_base64}'); "
+        "background-size: cover; "
+        "background-position: center; "
+        "background-repeat: no-repeat;"
+    )
 
 
 # GOOGLE SHEETS VIA STREAMLIT SECRETS
@@ -357,7 +408,7 @@ div.stDownloadButton > button:hover {
 """, unsafe_allow_html=True)
 
 st.markdown(f"""
-<div class="hero">
+<div class="hero" style="{fundo_hero_style()}">
     <div class="hero-logo">
         {logo_html()}
     </div>
