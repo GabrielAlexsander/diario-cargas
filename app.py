@@ -96,7 +96,7 @@ def fundo_hero_style():
         "linear-gradient(90deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.84) 45%, rgba(244,247,251,0.72) 100%), "
         f"url('data:image/{mime};base64,{fundo_base64}'); "
         "background-size: cover; "
-        "background-position: center 70%; "
+        "background-position: center 55%; "
         "background-repeat: no-repeat;"
     )
 
