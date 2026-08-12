@@ -180,7 +180,7 @@ st.markdown("""
     color: #475569;
     font-size: 13px;
     font-weight: 700;
-    margin-top: -22px;
+    margin-top: -24px;
 }
 
 div[data-testid="stTabs"] button {
