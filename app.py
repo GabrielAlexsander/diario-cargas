@@ -151,7 +151,7 @@ st.markdown("""
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 4px;
+    gap: 1px;
 }
 
 .hero-kicker {
@@ -180,7 +180,7 @@ st.markdown("""
     color: #475569;
     font-size: 13px;
     font-weight: 700;
-    margin-top: 0;
+    margin-top: -2px;
 }
 
 div[data-testid="stTabs"] button {
