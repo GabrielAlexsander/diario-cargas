@@ -137,7 +137,7 @@ st.markdown("""
     object-fit: contain;
     object-position: left center;
     display: block;
-    transform: translateY(6px);
+    transform: translateY(9px);
 }
 
 .logo-texto {
