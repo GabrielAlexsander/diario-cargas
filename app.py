@@ -517,7 +517,7 @@ def montar_elementos_pdf(bloco):
         ["Destino", primeira["DESTINO"]],
         ["Data", primeira["DATA"]],
         ["Tipo de Movimentação", tipo_movimentacao],
-        ["Nº COLETA GW", primeira["COLETA GW"]],
+        ["Nº Coleta GW", primeira["COLETA GW"]],
         ["Cubagem Total (Soma das NFs)", f"{cubagem_total:.2f}"],
         ["Peso Total (Kg)", f"{peso_total:.2f}"],
         ["Cálculo KIT", f"{resultado_kit:.2f}"],
