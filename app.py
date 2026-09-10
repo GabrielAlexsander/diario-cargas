@@ -96,9 +96,22 @@ def fundo_hero_style():
         "linear-gradient(90deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.84) 45%, rgba(244,247,251,0.72) 100%), "
         f"url('data:image/{mime};base64,{fundo_base64}'); "
         "background-size: cover; "
-        "background-position: center 63%; "
+        "background-position: center; "
         "background-repeat: no-repeat;"
     )
+
+
+def obter_valor(row, nomes=None, indice=None):
+    nomes = nomes or []
+
+    for nome in nomes:
+        if nome in row.index:
+            return row[nome]
+
+    if indice is not None and len(row) > indice:
+        return row.iloc[indice]
+
+    return ""
 
 
 # GOOGLE SHEETS VIA STREAMLIT SECRETS
@@ -462,13 +475,23 @@ def montar_elementos_pdf(bloco):
         leading=6
     )
 
+    style_tabela_header = ParagraphStyle(
+        'tabela_header',
+        parent=styles['Normal'],
+        fontSize=5.5,
+        leading=6,
+        textColor=colors.white,
+        alignment=1
+    )
+
     primeira = bloco.iloc[0]
     tipo_movimentacao = primeira.iloc[12] if len(primeira) > 12 else ""
 
     cubagem_total = 0
     for _, row in bloco.iterrows():
         try:
-            cubagem_total += float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            valor_cubagem = obter_valor(row, ["CUBAGEM FINAL"], 7)
+            cubagem_total += float(str(valor_cubagem).replace(",", "."))
         except:
             pass
 
@@ -517,7 +540,7 @@ def montar_elementos_pdf(bloco):
         ["Destino", primeira["DESTINO"]],
         ["Data", primeira["DATA"]],
         ["Tipo de Movimentação", tipo_movimentacao],
-        ["Nº Coleta GW", primeira["COLETA GW"]],
+        ["GW", primeira["COLETA GW"]],
         ["Cubagem Total (Soma das NFs)", f"{cubagem_total:.2f}"],
         ["Peso Total (Kg)", f"{peso_total:.2f}"],
         ["Cálculo KIT", f"{resultado_kit:.2f}"],
@@ -537,31 +560,58 @@ def montar_elementos_pdf(bloco):
         ('BOTTOMPADDING', (0,0), (-1,-1), 4),
     ]))
 
-    tabela = [["CLIENTE", "DESTINO NF", "NF", "CONF.", "VOL", "PESO", "CUB.", "REDESP."]]
+    tabela = [[
+        Paragraph("SEQ. ENTRADA", style_tabela_header),
+        Paragraph("CLIENTE", style_tabela_header),
+        Paragraph("DESTINO NF", style_tabela_header),
+        Paragraph("NF", style_tabela_header),
+        Paragraph("CONF.", style_tabela_header),
+        Paragraph("VOL", style_tabela_header),
+        Paragraph("PESO", style_tabela_header),
+        Paragraph("CUB.", style_tabela_header),
+        Paragraph("REDESP.", style_tabela_header),
+        Paragraph("TIPO DE CARREGAMENTO", style_tabela_header),
+    ]]
 
     for _, row in bloco.iterrows():
 
-        redespacho = str(row["REDESPACHO"]).strip().upper()
+        redespacho = str(obter_valor(row, ["REDESPACHO"])).strip().upper()
         destino_nota = redespacho if redespacho else "ENTREGA DIRETA"
 
         try:
-            cubagem = float(str(row["CUBAGEM FINAL"]).replace(",", "."))
+            valor_cubagem = obter_valor(row, ["CUBAGEM FINAL"], 7)
+            cubagem = float(str(valor_cubagem).replace(",", "."))
             cubagem_formatada = f"{cubagem:.2f}"
         except:
             cubagem_formatada = "0.00"
 
+        seq_entrada = obter_valor(
+            row,
+            ["SEQ. ENTRADA", "SEQ ENTRADA", "SEQUÊNCIA ENTRADA", "SEQUENCIA ENTRADA"],
+            8
+        )
+        cliente = obter_valor(row, ["CLIENTE"], 2)
+        destino_nf = obter_valor(row, ["DESTINO"], 3)
+        tipo_carregamento = obter_valor(
+            row,
+            ["TIPO DE CARREGAMENTO", "TIPO CARREGAMENTO"],
+            9
+        )
+
         tabela.append([
-            Paragraph(str(row["CLIENTE"]), style_small),
-            Paragraph(str(row["DESTINO"]), style_small),
+            Paragraph(str(seq_entrada), style_small),
+            Paragraph(str(cliente), style_small),
+            Paragraph(str(destino_nf), style_small),
             Paragraph(str(row["NOTAS FISCAIS"]), style_small),
             "",
             Paragraph(str(row["VOLUMES"]), style_small),
             Paragraph(str(row["PESO Kg"]), style_small),
             Paragraph(cubagem_formatada, style_small),
             Paragraph(destino_nota, style_small),
+            Paragraph(str(tipo_carregamento), style_small),
         ])
 
-    table = Table(tabela, colWidths=[95, 70, 45, 30, 30, 40, 40, 55])
+    table = Table(tabela, colWidths=[50, 92, 70, 42, 30, 30, 40, 35, 72, 104])
 
     table.setStyle(TableStyle([
         ('BACKGROUND',(0,0),(-1,0),colors.HexColor("#1d35ad")),
