@@ -114,7 +114,6 @@ def obter_valor(row, nomes=None, indice=None):
     return ""
 
 
-# GOOGLE SHEETS VIA STREAMLIT SECRETS
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
@@ -131,7 +130,6 @@ dados = sheet.get_all_values()
 df = pd.DataFrame(dados[1:], columns=dados[0])
 df.columns = df.columns.str.strip()
 
-# SEPARAR POR LINHA VAZIA
 blocos = []
 bloco_atual = []
 
@@ -146,7 +144,6 @@ for _, row in df.iterrows():
 if bloco_atual:
     blocos.append(pd.DataFrame(bloco_atual))
 
-# ESTILO
 st.markdown("""
 <style>
 .stApp {
@@ -434,7 +431,6 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# PDF
 def criar_logo_pdf():
     if LOGO_PATH:
         largura_original, altura_original = ImageReader(LOGO_PATH).getSize()
@@ -472,7 +468,8 @@ def montar_elementos_pdf(bloco):
         'small',
         parent=styles['Normal'],
         fontSize=6,
-        leading=6
+        leading=6,
+        alignment=1
     )
 
     style_tabela_header = ParagraphStyle(
@@ -619,6 +616,7 @@ def montar_elementos_pdf(bloco):
         ('GRID',(0,0),(-1,-1),0.3,colors.HexColor("#cbd5e1")),
         ('FONTSIZE',(0,0),(-1,-1),6),
         ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
+        ('ALIGN',(0,0),(-1,-1),'CENTER'),
         ('VALIGN',(0,0),(-1,-1),'MIDDLE'),
     ]))
 
@@ -675,7 +673,6 @@ def gerar_pdf_selecionados(blocos_selecionados):
     return buffer
 
 
-# FILTRO DE DATA
 def converter_data(valor):
     data_convertida = pd.to_datetime(str(valor).strip(), dayfirst=True, errors="coerce")
     if pd.isna(data_convertida):
@@ -683,10 +680,8 @@ def converter_data(valor):
     return data_convertida.date()
 
 
-# ABAS
 aba_pendentes, aba_finalizados = st.tabs(["Pendentes", "Finalizados"])
 
-# PENDENTES
 with aba_pendentes:
     filtrar_data_pendentes = st.checkbox("Filtrar por data", key="check_data_pendentes")
     filtro_data_pendentes = None
@@ -771,7 +766,6 @@ with aba_pendentes:
             key="imprimir_pendentes_selecionados"
         )
 
-# FINALIZADOS
 with aba_finalizados:
     filtrar_data_finalizados = st.checkbox("Filtrar por data", key="check_data_finalizados")
     filtro_data_finalizados = None
