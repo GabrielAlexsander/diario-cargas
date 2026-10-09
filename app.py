@@ -566,7 +566,7 @@ def montar_elementos_pdf(bloco):
         Paragraph("VOL", style_tabela_header),
         Paragraph("PESO", style_tabela_header),
         Paragraph("CUB.", style_tabela_header),
-        Paragraph("REDESP.", style_tabela_header),
+        Paragraph("DESTINO REAL", style_tabela_header),
         Paragraph("TIPO DE CARREGAMENTO", style_tabela_header),
     ]]
 
